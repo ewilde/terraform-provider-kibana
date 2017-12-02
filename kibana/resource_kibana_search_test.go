@@ -88,37 +88,56 @@ resource "kibana_search" "china" {
 	display_columns = ["_source"]
 	sort_by_columns = ["@timestamp"]
 	search = {
-		index   = "foo"
+		index   = "${data.kibana_index.main.id}"
 		filters = [
 			{
 				match = {
-					query = "CN"
-					type = "phrase"
+					field_name = "geo.src"
+					query      = "CN"
+					type       = "phrase"
 				}
 			}
 		]
 	}
 }
+
+data "kibana_index" "main" {
+	filter = {
+		name = "title"
+		values = ["logstash-*"]
+	}
+}
 `
 const testUpdateSearchConfig = `
+resource "kibana_search" "china" {
 	name 	        = "Chinese search - errors"
 	display_columns = ["_source"]
 	sort_by_columns = ["@timestamp"]
 	search = {
-		index   = "foo"
+		index   = "${data.kibana_index.main.id}"
 		filters = [
 			{
 				match = {
-					query = "CN"
-					type = "phrase"
+					field_name = "geo.src"
+					query      = "CN"
+					type       = "phrase"
 				},
 			},
 			{
 				match = {
-					query = "@tags"
-					type = "error"
+					field_name = "@tags"
+					query      = "error"
+					type       = "phrase"
 				}
 			}
 		]
 	}
+}
+
+data "kibana_index" "main" {
+	filter = {
+		name = "title"
+		values = ["logstash-*"]
+	}
+}
 `

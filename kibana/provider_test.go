@@ -5,10 +5,10 @@ import (
 
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/hashicorp/terraform/helper/schema"
-	"os"
-	"log"
-	"github.com/ewilde/go-kibana/containers"
-	"github.com/ewilde/go-kibana"
+	//"os"
+	//"log"
+	//"github.com/ewilde/go-kibana/containers"
+	//"github.com/ewilde/go-kibana"
 )
 
 var testAccProviders map[string]terraform.ResourceProvider
@@ -27,27 +27,27 @@ func TestProvider(t *testing.T) {
 	}
 }
 
-func TestMain(m *testing.M) {
-
-	testContext, err := containers.StartKibana()
-	if err != nil {
-		log.Fatalf("Could not start kibana: %v", err)
-	}
-
-	err = os.Setenv(kibana.EnvKibanaUri, testContext.KibanaUri)
-	if err != nil {
-		log.Fatalf("Could not set kibana host address env variable: %v", err)
-	}
-
-	err = os.Setenv(kibana.EnvKibanaIndexId, testContext.KibanaIndexId)
-	if err != nil {
-		log.Fatalf("Could not set kibana index id env variable: %v", err)
-	}
-
-	code := m.Run()
-
-	containers.StopKibana(testContext)
-
-	os.Exit(code)
-
-}
+//func TestMain(m *testing.M) {
+//
+//	testContext, err := containers.StartKibana()
+//	if err != nil {
+//		log.Fatalf("Could not start kibana: %v", err)
+//	}
+//
+//	err = os.Setenv(kibana.EnvKibanaUri, testContext.KibanaUri)
+//	if err != nil {
+//		log.Fatalf("Could not set kibana host address env variable: %v", err)
+//	}
+//
+//	err = os.Setenv(kibana.EnvKibanaIndexId, testContext.KibanaIndexId)
+//	if err != nil {
+//		log.Fatalf("Could not set kibana index id env variable: %v", err)
+//	}
+//
+//	code := m.Run()
+//
+//	containers.StopKibana(testContext)
+//
+//	os.Exit(code)
+//
+//}

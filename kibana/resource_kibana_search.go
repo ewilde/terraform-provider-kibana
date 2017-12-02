@@ -4,6 +4,9 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"fmt"
 	"github.com/ewilde/go-kibana"
+	"encoding/json"
+	"bytes"
+	"github.com/hashicorp/terraform/helper/hashcode"
 )
 
 func resourceDir() *schema.Resource {
@@ -61,6 +64,10 @@ func resourceDir() *schema.Resource {
 										Optional: true,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
+												"field_name": &schema.Schema{
+													Type:     schema.TypeString,
+													Required: true,
+												},
 												"query": &schema.Schema{
 													Type:     schema.TypeString,
 													Required: true,
@@ -101,7 +108,71 @@ func resourceKibanaSearchCreate(d *schema.ResourceData, meta interface{}) error 
 }
 
 func resourceKibanaSearchRead(d *schema.ResourceData, meta interface{}) error {
+	response, err := meta.(*kibana.KibanaClient).Search().GetById(d.Id())
+
+	if err != nil {
+		return fmt.Errorf("could not find kong api: %v", err)
+	}
+
+	d.Set("name", response.Attributes.Title)
+	d.Set("description", response.Attributes.Description)
+	d.Set("display_columns", response.Attributes.Columns)
+	d.Set("sort_by_columns", response.Attributes.Sort[:len(response.Attributes.Sort) - 1])
+
+	sortAscending := false
+	if response.Attributes.Sort[1] == "ASC" {
+		sortAscending = true
+	}
+
+	d.Set("sort_ascending", sortAscending)
+
+	responseSearch := &kibana.SearchSource{}
+	if err := json.Unmarshal([]byte(response.Attributes.KibanaSavedObjectMeta.SearchSourceJSON), responseSearch); err != nil {
+		return err
+	}
+
+	filters := make([]interface{}, 0, len(responseSearch.Filter))
+	for _, x := range responseSearch.Filter  {
+		filters = append(filters, map[string]interface{}{ "match": flattenMatches(x.Query) })
+	}
+
+	search :=[]interface{}{map[string]interface{}{
+		"index": responseSearch.IndexId,
+		"filters": filters,
+	}}
+
+	if err := d.Set("search", search); err != nil {
+		return err
+	}
+
 	return nil
+}
+
+func flattenMatches(searchFilterQuery *kibana.SearchFilterQuery) *schema.Set {
+
+	s := schema.NewSet(matchHash, []interface{}{})
+	for k, v := range searchFilterQuery.Match {
+		s.Add(flattenMatch(k, v))
+	}
+	return s
+}
+
+func flattenMatch(field string, value *kibana.SearchFilterQueryAttributes) map[string]interface{} {
+	m := map[string]interface{}{}
+	m["field_name"] = field
+	m["query"] = value.Query
+	m["type"] = value.Type
+
+	return m
+}
+
+func matchHash(v interface{}) int {
+	var buf bytes.Buffer
+	m := v.(map[string]interface{})
+	buf.WriteString(fmt.Sprintf("%s-", m["field_name"].(string)))
+	buf.WriteString(fmt.Sprintf("%s", m["query"].(string)))
+	buf.WriteString(fmt.Sprintf("%s", m["type"].(string)))
+	return hashcode.String(buf.String())
 }
 
 func resourceKibanaSearchUpdate(d *schema.ResourceData, meta interface{}) error {
@@ -134,7 +205,7 @@ func createKibanaSearchCreateRequestFromResourceData(d *schema.ResourceData) (*k
 				searchBuilder.WithFilter(&kibana.SearchFilter{
 					Query: &kibana.SearchFilterQuery{
 						Match: map[string]*kibana.SearchFilterQueryAttributes{
-							"@tags": {
+							match["field_name"].(string): {
 								Query: match["query"].(string),
 								Type:  match["type"].(string),
 							},

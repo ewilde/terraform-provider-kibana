@@ -41,6 +41,9 @@ func testAccDataSourceKibanaIndex(dataSource string) resource.TestCheckFunc {
 			return fmt.Errorf("expected kibana index time field name %s actual %s", expectedTimeFieldName, a["time_field_name"])
 		}
 
+		if len(r.Primary.ID) != 36 {
+			return fmt.Errorf("expected id to be 36 characters actual length: %d value: %s", len(r.Primary.ID), r.Primary.ID)
+		}
 		return nil
 	}
 }
