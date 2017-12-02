@@ -11,7 +11,7 @@ test: fmtcheck
 	echo $(TEST) | \
 		xargs -t -n4 go test $(TESTARGS) -timeout=30s -parallel=4
 
-testacc: fmtcheck
+testacc: fmtcheck docker
 	TF_ACC=1 go test $(TEST) -v $(TESTARGS) -timeout 120m
 
 vet:
@@ -43,5 +43,12 @@ test-compile:
 	fi
 	go test -c $(TEST) $(TESTARGS)
 
-.PHONY: build test testacc vet fmt fmtcheck errcheck vendor-status test-compile
+release:
+	go get github.com/goreleaser/goreleaser; \
+    goreleaser; \
+
+docker:
+	cd docker/elasticsearch && docker build . -t elastic-local:6.0.0
+
+.PHONY: build test testacc vet fmt fmtcheck errcheck vendor-status test-compile release docker
 
