@@ -2,10 +2,10 @@ package kibana
 
 import (
 	"fmt"
-	"testing"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/pkg/errors"
+	"testing"
 )
 
 func TestAccDataSourceKibanaIndex_Basic(t *testing.T) {

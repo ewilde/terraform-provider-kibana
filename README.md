@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/ewilde/terraform-provider-kibana.svg?branch=master)](https://travis-ci.org/ewilde/terraform-provider-kibana)
+
 Terraform Provider
 ==================
 
@@ -17,26 +19,26 @@ Usage
 ---------------------
 
 ```
-# For example, restrict template version in 0.1.x
-provider "template" {
-  version = "~> 0.1"
+# For example, restrict kibana version in 1.0.x
+provider "kibana" {
+  version = "~> 1.0"
 }
 ```
 
 Building The Provider
 ---------------------
 
-Clone repository to: `$GOPATH/src/github.com/hashicorp/terraform-provider-$PROVIDER_NAME`
+Clone repository to: `$GOPATH/src/github.com/hashicorp/terraform-provider-kibana`
 
 ```sh
 $ mkdir -p $GOPATH/src/github.com/hashicorp; cd $GOPATH/src/github.com/hashicorp
-$ git clone git@github.com:hashicorp/terraform-provider-$PROVIDER_NAME
+$ git clone git@github.com:hashicorp/terraform-provider-kibana
 ```
 
 Enter the provider directory and build the provider
 
 ```sh
-$ cd $GOPATH/src/github.com/hashicorp/terraform-provider-$PROVIDER_NAME
+$ cd $GOPATH/src/github.com/hashicorp/terraform-provider-kibana
 $ make build
 ```
 
@@ -54,7 +56,7 @@ To compile the provider, run `make build`. This will build the provider and put 
 ```sh
 $ make bin
 ...
-$ $GOPATH/bin/terraform-provider-$PROVIDER_NAME
+$ $GOPATH/bin/terraform-provider-kibana
 ...
 ```
 

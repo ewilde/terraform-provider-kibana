@@ -1,10 +1,10 @@
 package kibana
 
 import (
-	"os"
 	"github.com/ewilde/go-kibana"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
+	"os"
 )
 
 func Provider() terraform.ResourceProvider {
@@ -18,12 +18,12 @@ func Provider() terraform.ResourceProvider {
 			},
 		},
 
-		DataSourcesMap: map[string]*schema.Resource {
-			"kibana_index" : dataSourceKibanaIndex(),
+		DataSourcesMap: map[string]*schema.Resource{
+			"kibana_index": dataSourceKibanaIndex(),
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
-			"kibana_search": resourceDir(),
+			"kibana_search": resourceKibanaSearch(),
 		},
 
 		ConfigureFunc: providerConfigure,

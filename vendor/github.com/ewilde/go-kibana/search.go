@@ -133,6 +133,19 @@ func (api *SearchClient) GetById(id string) (*SearchResponse, error) {
 	return createResponse, nil
 }
 
+func (api *SearchClient) Delete(id string) error {
+	response, body, err := api.client.
+		Delete(api.config.HostAddress+savedObjectsPath+"search/"+id).
+		Set("kbn-version", containers.KibanaVersion).
+		End()
+
+	if err != nil {
+		return fmt.Errorf("could not delete search with id:%s response: %+v %s errors: %+v", id, response, body, err)
+	}
+
+	return nil
+}
+
 func NewSearchSourceBuilder() *SearchSourceBuilder {
 	return &SearchSourceBuilder{filters: []*SearchFilter{}}
 }

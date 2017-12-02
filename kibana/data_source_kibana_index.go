@@ -2,10 +2,10 @@ package kibana
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform/helper/schema"
-	"log"
 	"github.com/ewilde/go-kibana"
+	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/pkg/errors"
+	"log"
 )
 
 func dataSourceKibanaIndex() *schema.Resource {
@@ -59,7 +59,7 @@ func dataSourceKibanaIndexRead(d *schema.ResourceData, meta interface{}) error {
 
 	result, err := client.SavedObjects().GetByType(
 		kibana.NewSavedObjectRequestBuilder().
-			WithFields([]string{"title","timeFieldName", "fields"}).
+			WithFields([]string{"title", "timeFieldName", "fields"}).
 			WithType("index-pattern").
 			WithPerPage(100).
 			Build())

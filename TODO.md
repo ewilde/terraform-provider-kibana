@@ -1,13 +1,13 @@
 - [x] Integration
  - [x] Start containers
- - [ ] Travis CI
+ - [x] Travis CI
 
 - [ ] resource_kibana_search
- - [ ] Test (depends on datasource_kibana_index_pattern)
- - [ ] Create
- - [ ] Read
+ - [x] Test (depends on datasource_kibana_index_pattern)
+ - [x] Create
+ - [x] Read
  - [ ] Update
- - [ ] Delete
+ - [x] Delete
 
 - [x] datasource_kibana_index_pattern
  - [x] Test

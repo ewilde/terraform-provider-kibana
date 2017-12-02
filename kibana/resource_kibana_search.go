@@ -1,15 +1,15 @@
 package kibana
 
 import (
-	"github.com/hashicorp/terraform/helper/schema"
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"github.com/ewilde/go-kibana"
-	"encoding/json"
-	"bytes"
 	"github.com/hashicorp/terraform/helper/hashcode"
+	"github.com/hashicorp/terraform/helper/schema"
 )
 
-func resourceDir() *schema.Resource {
+func resourceKibanaSearch() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceKibanaSearchCreate,
 		Read:   resourceKibanaSearchRead,
@@ -117,7 +117,7 @@ func resourceKibanaSearchRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("name", response.Attributes.Title)
 	d.Set("description", response.Attributes.Description)
 	d.Set("display_columns", response.Attributes.Columns)
-	d.Set("sort_by_columns", response.Attributes.Sort[:len(response.Attributes.Sort) - 1])
+	d.Set("sort_by_columns", response.Attributes.Sort[:len(response.Attributes.Sort)-1])
 
 	sortAscending := false
 	if response.Attributes.Sort[1] == "ASC" {
@@ -132,12 +132,12 @@ func resourceKibanaSearchRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	filters := make([]interface{}, 0, len(responseSearch.Filter))
-	for _, x := range responseSearch.Filter  {
-		filters = append(filters, map[string]interface{}{ "match": flattenMatches(x.Query) })
+	for _, x := range responseSearch.Filter {
+		filters = append(filters, map[string]interface{}{"match": flattenMatches(x.Query)})
 	}
 
-	search :=[]interface{}{map[string]interface{}{
-		"index": responseSearch.IndexId,
+	search := []interface{}{map[string]interface{}{
+		"index":   responseSearch.IndexId,
 		"filters": filters,
 	}}
 
@@ -180,12 +180,18 @@ func resourceKibanaSearchUpdate(d *schema.ResourceData, meta interface{}) error 
 }
 
 func resourceKibanaSearchDelete(d *schema.ResourceData, meta interface{}) error {
+	err := meta.(*kibana.KibanaClient).Search().Delete(d.Id())
+
+	if err != nil {
+		return fmt.Errorf("could not delete kong api: %v", err)
+	}
+
 	return nil
 }
 
 func createKibanaSearchCreateRequestFromResourceData(d *schema.ResourceData) (*kibana.SearchRequest, error) {
 
-	sortOrder := kibana.Descending;
+	sortOrder := kibana.Descending
 	if readBoolFromResource(d, "sort_ascending") {
 		sortOrder = kibana.Ascending
 	}
