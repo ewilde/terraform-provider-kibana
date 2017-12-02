@@ -2,6 +2,7 @@
  - [x] Start containers
  - [x] Travis CI
  - [ ] Add back govendor status check to travis.yml once https://github.com/ory/dockertest/issues/103 is fixed
+ - [ ] Get goreleaser working
 
 - [ ] resource_kibana_search
  - [x] Test (depends on datasource_kibana_index_pattern)

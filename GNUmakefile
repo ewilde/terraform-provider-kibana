@@ -1,11 +1,8 @@
 GOFMT_FILES?=$$(find . -name '*.go' |grep -v vendor)
 
-default: build test testacc
+default: build testacc
 
 travisbuild: deps default
-
-test: fmtcheck
-	go test -v . ./kibana
 
 testacc: fmtcheck docker
 	TF_ACC=1 go test -v ./kibana -run="TestAcc"
