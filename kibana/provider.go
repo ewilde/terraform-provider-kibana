@@ -18,6 +18,10 @@ func Provider() terraform.ResourceProvider {
 			},
 		},
 
+		DataSourcesMap: map[string]*schema.Resource {
+			"kibana_index" : dataSourceKibanaIndex(),
+		},
+
 		ResourcesMap: map[string]*schema.Resource{
 			"kibana_search": resourceDir(),
 		},

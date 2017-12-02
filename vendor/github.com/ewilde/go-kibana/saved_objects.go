@@ -9,14 +9,14 @@ import (
 const savedObjectsPath = "/api/saved_objects/"
 
 type SavedObjectRequest struct {
-	Type    string `json:"type" url:"type"`
-	Fields  string `json:"fields" url:"fields"`
-	PerPage int    `json:"per_page" url:"per_page"`
+	Type    string   `json:"type" url:"type"`
+	Fields  []string `json:"fields" url:"fields"`
+	PerPage int      `json:"per_page" url:"per_page"`
 }
 
 type SavedObjectRequestBuilder struct {
 	objectType string
-	fields     string
+	fields     []string
 	perPage    int
 }
 
@@ -69,7 +69,7 @@ func (builder *SavedObjectRequestBuilder) WithType(objectType string) *SavedObje
 	return builder
 }
 
-func (builder *SavedObjectRequestBuilder) WithFields(fields string) *SavedObjectRequestBuilder {
+func (builder *SavedObjectRequestBuilder) WithFields(fields []string) *SavedObjectRequestBuilder {
 	builder.fields = fields
 	return builder
 }

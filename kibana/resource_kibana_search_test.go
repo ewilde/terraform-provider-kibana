@@ -84,11 +84,11 @@ func testAccCheckKibanaSearchExists(resourceKey string) resource.TestCheckFunc {
 
 const testCreateSearchConfig = `
 resource "kibana_search" "china" {
-	name 	= "Chinese search"
+	name 	        = "Chinese search"
 	display_columns = ["_source"]
 	sort_by_columns = ["@timestamp"]
 	search = {
-		index = "foo"
+		index   = "foo"
 		filters = [
 			{
 				match = {
@@ -101,7 +101,24 @@ resource "kibana_search" "china" {
 }
 `
 const testUpdateSearchConfig = `
-resource "kibana_search" "china" {
-	name 	= "Chinese search - errors"
-}
+	name 	        = "Chinese search - errors"
+	display_columns = ["_source"]
+	sort_by_columns = ["@timestamp"]
+	search = {
+		index   = "foo"
+		filters = [
+			{
+				match = {
+					query = "CN"
+					type = "phrase"
+				},
+			},
+			{
+				match = {
+					query = "@tags"
+					type = "error"
+				}
+			}
+		]
+	}
 `
