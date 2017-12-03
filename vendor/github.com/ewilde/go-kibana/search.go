@@ -20,11 +20,15 @@ type SearchClient struct {
 	client *gorequest.SuperAgent
 }
 
-type SearchRequest struct {
+type CreateSearchRequest struct {
 	Attributes *SearchAttributes `json:"attributes"`
 }
 
-type SearchResponse struct {
+type UpdateSearchRequest struct {
+	Attributes *SearchAttributes `json:"attributes"`
+}
+
+type Search struct {
 	Id         string            `json:"id"`
 	Type       string            `json:"type"`
 	Version    int               `json:"version"`
@@ -86,7 +90,7 @@ type SearchSourceBuilder struct {
 	filters      []*SearchFilter
 }
 
-func (api *SearchClient) Create(request *SearchRequest) (*SearchResponse, error) {
+func (api *SearchClient) Create(request *CreateSearchRequest) (*Search, error) {
 	response, body, err := api.client.
 		Post(api.config.HostAddress+savedObjectsPath+"search?overwrite=true").
 		Set("kbn-version", containers.KibanaVersion).
@@ -101,7 +105,7 @@ func (api *SearchClient) Create(request *SearchRequest) (*SearchResponse, error)
 		return nil, errors.New(fmt.Sprintf("Status: %d, %s", response.StatusCode, body))
 	}
 
-	createResponse := &SearchResponse{}
+	createResponse := &Search{}
 	error := json.Unmarshal([]byte(body), createResponse)
 	if error != nil {
 		return nil, fmt.Errorf("could not parse fields from create response, error: %v", error)
@@ -110,7 +114,31 @@ func (api *SearchClient) Create(request *SearchRequest) (*SearchResponse, error)
 	return createResponse, nil
 }
 
-func (api *SearchClient) GetById(id string) (*SearchResponse, error) {
+func (api *SearchClient) Update(id string, request *UpdateSearchRequest) (*Search, error) {
+	response, body, err := api.client.
+		Post(api.config.HostAddress+savedObjectsPath+"search/"+id+"?overwrite=true").
+		Set("kbn-version", containers.KibanaVersion).
+		Send(request).
+		End()
+
+	if err != nil {
+		return nil, err[0]
+	}
+
+	if response.StatusCode >= 300 {
+		return nil, errors.New(fmt.Sprintf("Status: %d, %s", response.StatusCode, body))
+	}
+
+	createResponse := &Search{}
+	error := json.Unmarshal([]byte(body), createResponse)
+	if error != nil {
+		return nil, fmt.Errorf("could not parse fields from create response, error: %v", error)
+	}
+
+	return createResponse, nil
+}
+
+func (api *SearchClient) GetById(id string) (*Search, error) {
 	response, body, err := api.client.
 		Get(api.config.HostAddress+savedObjectsPath+"search/"+id).
 		Set("kbn-version", containers.KibanaVersion).
@@ -124,7 +152,7 @@ func (api *SearchClient) GetById(id string) (*SearchResponse, error) {
 		return nil, errors.New(fmt.Sprintf("Status: %d, %s", response.StatusCode, body))
 	}
 
-	createResponse := &SearchResponse{}
+	createResponse := &Search{}
 	error := json.Unmarshal([]byte(body), createResponse)
 	if error != nil {
 		return nil, fmt.Errorf("could not parse fields from get response, error: %v", error)
@@ -215,13 +243,13 @@ func (builder *SearchRequestBuilder) WithSearchSource(searchSource *SearchSource
 	return builder
 }
 
-func (builder *SearchRequestBuilder) Build() (*SearchRequest, error) {
+func (builder *SearchRequestBuilder) Build() (*CreateSearchRequest, error) {
 	searchSourceBytes, err := json.Marshal(builder.searchSource)
 	if err != nil {
 		return nil, err
 	}
 
-	request := &SearchRequest{
+	request := &CreateSearchRequest{
 		Attributes: &SearchAttributes{
 			Title:       builder.title,
 			Description: builder.description,

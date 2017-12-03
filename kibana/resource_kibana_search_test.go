@@ -20,15 +20,29 @@ func TestAccKibanaSearchApi(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckKibanaSearchExists("kibana_search.china"),
 					resource.TestCheckResourceAttr("kibana_search.china", "name", "Chinese search"),
+					resource.TestCheckResourceAttr("kibana_search.china", "description", "Chinese search results"),
+					resource.TestCheckResourceAttr("kibana_search.china", "display_columns.0", "_source"),
+					resource.TestCheckResourceAttr("kibana_search.china", "sort_by_columns.0", "@timestamp"),
+					resource.TestCheckResourceAttr("kibana_search.china", "sort_ascending", "false"),
+					CheckResourceAttrSet("kibana_search.china", "search.#.filters.0.match.#.field_name", "geo.src"),
+					CheckResourceAttrSet("kibana_search.china", "search.#.filters.0.match.#.query", "CN"),
+					CheckResourceAttrSet("kibana_search.china", "search.#.filters.0.match.#.type", "phrase"),
 				),
 			},
-			//{
-			//	Config: testUpdateSearchConfig,
-			//	Check: resource.ComposeTestCheckFunc(
-			//		testAccCheckKibanaSearchExists("kibana_search.china"),
-			//		resource.TestCheckResourceAttr("kibana_search.china", "name", "Chinese search - errors"),
-			//	),
-			//},
+			{
+				Config: testUpdateSearchConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckKibanaSearchExists("kibana_search.china"),
+					resource.TestCheckResourceAttr("kibana_search.china", "name", "Chinese search - errors"),
+					resource.TestCheckResourceAttr("kibana_search.china", "description", "Chinese errors"),
+					CheckResourceAttrSet("kibana_search.china", "search.#.filters.0.match.#.field_name", "geo.src"),
+					CheckResourceAttrSet("kibana_search.china", "search.#.filters.0.match.#.query", "CN"),
+					CheckResourceAttrSet("kibana_search.china", "search.#.filters.0.match.#.type", "phrase"),
+					CheckResourceAttrSet("kibana_search.china", "search.#.filters.1.match.#.field_name", "@tags"),
+					CheckResourceAttrSet("kibana_search.china", "search.#.filters.1.match.#.query", "error"),
+					CheckResourceAttrSet("kibana_search.china", "search.#.filters.1.match.#.type", "phrase"),
+				),
+			},
 		},
 	})
 }
@@ -86,6 +100,7 @@ func testAccCheckKibanaSearchExists(resourceKey string) resource.TestCheckFunc {
 const testCreateSearchConfig = `
 resource "kibana_search" "china" {
 	name 	        = "Chinese search"
+	description     = "Chinese search results"
 	display_columns = ["_source"]
 	sort_by_columns = ["@timestamp"]
 	search = {
@@ -112,6 +127,7 @@ data "kibana_index" "main" {
 const testUpdateSearchConfig = `
 resource "kibana_search" "china" {
 	name 	        = "Chinese search - errors"
+	description     = "Chinese errors"
 	display_columns = ["_source"]
 	sort_by_columns = ["@timestamp"]
 	search = {

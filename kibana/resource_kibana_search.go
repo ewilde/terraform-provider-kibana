@@ -103,7 +103,6 @@ func resourceKibanaSearchCreate(d *schema.ResourceData, meta interface{}) error 
 	}
 
 	d.SetId(api.Id)
-
 	return resourceKibanaSearchRead(d, meta)
 }
 
@@ -111,7 +110,7 @@ func resourceKibanaSearchRead(d *schema.ResourceData, meta interface{}) error {
 	response, err := meta.(*kibana.KibanaClient).Search().GetById(d.Id())
 
 	if err != nil {
-		return fmt.Errorf("could not find kong api: %v", err)
+		return fmt.Errorf("could not find kibana search: %v", err)
 	}
 
 	d.Set("name", response.Attributes.Title)
@@ -148,48 +147,32 @@ func resourceKibanaSearchRead(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func flattenMatches(searchFilterQuery *kibana.SearchFilterQuery) *schema.Set {
-
-	s := schema.NewSet(matchHash, []interface{}{})
-	for k, v := range searchFilterQuery.Match {
-		s.Add(flattenMatch(k, v))
-	}
-	return s
-}
-
-func flattenMatch(field string, value *kibana.SearchFilterQueryAttributes) map[string]interface{} {
-	m := map[string]interface{}{}
-	m["field_name"] = field
-	m["query"] = value.Query
-	m["type"] = value.Type
-
-	return m
-}
-
-func matchHash(v interface{}) int {
-	var buf bytes.Buffer
-	m := v.(map[string]interface{})
-	buf.WriteString(fmt.Sprintf("%s-", m["field_name"].(string)))
-	buf.WriteString(fmt.Sprintf("%s", m["query"].(string)))
-	buf.WriteString(fmt.Sprintf("%s", m["type"].(string)))
-	return hashcode.String(buf.String())
-}
-
 func resourceKibanaSearchUpdate(d *schema.ResourceData, meta interface{}) error {
-	return nil
+	searchRequest, err := createKibanaSearchCreateRequestFromResourceData(d)
+	if err != nil {
+		return fmt.Errorf("failed to update kibana search api: %v error: %v", searchRequest, err)
+	}
+
+	_, err = meta.(*kibana.KibanaClient).Search().Update(d.Id(), &kibana.UpdateSearchRequest{Attributes: searchRequest.Attributes})
+
+	if err != nil {
+		return fmt.Errorf("failed to update kibana saved search: %v error: %v", searchRequest, err)
+	}
+
+	return resourceKibanaSearchRead(d, meta)
 }
 
 func resourceKibanaSearchDelete(d *schema.ResourceData, meta interface{}) error {
 	err := meta.(*kibana.KibanaClient).Search().Delete(d.Id())
 
 	if err != nil {
-		return fmt.Errorf("could not delete kong api: %v", err)
+		return fmt.Errorf("could not delete kibana search: %v", err)
 	}
 
 	return nil
 }
 
-func createKibanaSearchCreateRequestFromResourceData(d *schema.ResourceData) (*kibana.SearchRequest, error) {
+func createKibanaSearchCreateRequestFromResourceData(d *schema.ResourceData) (*kibana.CreateSearchRequest, error) {
 
 	sortOrder := kibana.Descending
 	if readBoolFromResource(d, "sort_ascending") {
@@ -234,4 +217,31 @@ func createKibanaSearchCreateRequestFromResourceData(d *schema.ResourceData) (*k
 		WithSortColumns(readArrayFromResource(d, "sort_by_columns"), sortOrder).
 		WithSearchSource(searchSource).
 		Build()
+}
+
+func flattenMatches(searchFilterQuery *kibana.SearchFilterQuery) *schema.Set {
+
+	s := schema.NewSet(matchHash, []interface{}{})
+	for k, v := range searchFilterQuery.Match {
+		s.Add(flattenMatch(k, v))
+	}
+	return s
+}
+
+func flattenMatch(field string, value *kibana.SearchFilterQueryAttributes) map[string]interface{} {
+	m := map[string]interface{}{}
+	m["field_name"] = field
+	m["query"] = value.Query
+	m["type"] = value.Type
+
+	return m
+}
+
+func matchHash(v interface{}) int {
+	var buf bytes.Buffer
+	m := v.(map[string]interface{})
+	buf.WriteString(fmt.Sprintf("%s-", m["field_name"].(string)))
+	buf.WriteString(fmt.Sprintf("%s", m["query"].(string)))
+	buf.WriteString(fmt.Sprintf("%s", m["type"].(string)))
+	return hashcode.String(buf.String())
 }
