@@ -1,9 +1,10 @@
 - [ ] Provider
  - [ ] Add support for authentication
  - [ ] Add property for kibana url
+ - [ ] Add version to provider
 
-- [ ] Documentation
- - [ ] Create examples folder
+- [x] Documentation
+ - [x] Create examples folder
 
 - [ ] Make
  - [ ] Start / Stop docker. Make testing examples easier

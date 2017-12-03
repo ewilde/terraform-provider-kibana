@@ -55,7 +55,7 @@ func resourceKibanaSearch() *schema.Resource {
 							Type:     schema.TypeString,
 							Required: true,
 						},
-						"filters": &schema.Schema{
+						"filters": {
 							Type: schema.TypeList,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
@@ -64,15 +64,15 @@ func resourceKibanaSearch() *schema.Resource {
 										Optional: true,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
-												"field_name": &schema.Schema{
+												"field_name": {
 													Type:     schema.TypeString,
 													Required: true,
 												},
-												"query": &schema.Schema{
+												"query": {
 													Type:     schema.TypeString,
 													Required: true,
 												},
-												"type": &schema.Schema{
+												"type": {
 													Type:     schema.TypeString,
 													Required: true,
 												},

@@ -4,7 +4,7 @@ default: build testacc
 
 travisbuild: deps default
 
-testacc: fmtcheck docker
+testacc: fmtcheck docker-build
 	TF_ACC=1 go test -v ./kibana -run="TestAcc"
 
 build: fmtcheck vet testacc
@@ -13,8 +13,11 @@ build: fmtcheck vet testacc
 	@cp $(GOPATH)/bin/terraform-provider-kibana ~/.terraform.d/plugins/terraform-provider-kibana
 	@echo "Build succeeded"
 
-docker:
+docker-build:
 	cd docker/elasticsearch && docker build . -t elastic-local:6.0.0
+
+start-kibana: docker-build
+	@sh -c "'$(CURDIR)/scripts/start-docker.sh'"
 
 build-gox: deps fmtcheck vet
 	gox -osarch="linux/amd64 windows/amd64 darwin/amd64" \
@@ -45,4 +48,4 @@ vet:
 		exit 1; \
 	fi
 
-.PHONY: build test testacc vet fmt fmtcheck errcheck vendor-status test-compile release docker
+.PHONY: build test testacc vet fmt fmtcheck errcheck vendor-status test-compile release docker-build start-kibana
