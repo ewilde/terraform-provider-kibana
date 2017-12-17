@@ -3,16 +3,16 @@ package kibana
 import (
 	"testing"
 
+	"fmt"
 	"github.com/ewilde/go-kibana"
 	"github.com/ewilde/go-kibana/containers"
+	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
 	"log"
 	"os"
-	"github.com/hashicorp/terraform/helper/resource"
-	"fmt"
-	"strings"
 	"strconv"
+	"strings"
 )
 
 var testAccProviders map[string]terraform.ResourceProvider
@@ -56,7 +56,7 @@ func TestMain(m *testing.M) {
 
 }
 
-func CheckResourceAttrSet(name, key, value string) resource.TestCheckFunc{
+func CheckResourceAttrSet(name, key, value string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		is, err := primaryInstanceState(s, name)
 		if err != nil {
@@ -76,7 +76,7 @@ func CheckResourceAttrSet(name, key, value string) resource.TestCheckFunc{
 						continue
 					}
 
-					if _, err := strconv.ParseInt(item,10,64); err == nil {
+					if _, err := strconv.ParseInt(item, 10, 64); err == nil && len(item) > 5 {
 						continue
 					}
 
@@ -94,7 +94,6 @@ func CheckResourceAttrSet(name, key, value string) resource.TestCheckFunc{
 		if keysAreNotEqual {
 			return fmt.Errorf("%s: Attribute '%s' not found", name, key)
 		}
-
 
 		if matchedValue != value {
 			return fmt.Errorf(

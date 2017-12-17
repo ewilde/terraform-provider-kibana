@@ -12,9 +12,21 @@ func Provider() terraform.ResourceProvider {
 		Schema: map[string]*schema.Schema{
 			"kibana_uri": {
 				Type:        schema.TypeString,
-				Required:    true,
+				Optional:    true,
 				DefaultFunc: envDefaultFuncWithDefault(kibana.EnvKibanaUri, kibana.DefaultKibanaUri),
-				Description: "The address of the kibana admin url e.g. " + kibana.DefaultKibanaUri,
+				Description: "The address of the kibana admin url, defaults to: " + kibana.DefaultKibanaUri,
+			},
+			"kibana_type": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				DefaultFunc: envDefaultFuncWithDefault(kibana.EnvKibanaType, kibana.KibanaTypeVanilla.String()),
+				Description: "The type of the kibana either vanilla or logz.io, defaults to: " + kibana.KibanaTypeVanilla.String(),
+			},
+			"kibana_version": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				DefaultFunc: envDefaultFuncWithDefault(kibana.EnvKibanaVersion, kibana.DefaultKibanaVersion),
+				Description: "The version of kibana being terraformed either 6.0.0 or 5.5.3, defaults to: " + kibana.DefaultKibanaVersion,
 			},
 		},
 
@@ -46,7 +58,9 @@ func envDefaultFuncWithDefault(key string, defaultValue string) schema.SchemaDef
 
 func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 	config := &kibana.Config{
-		HostAddress: d.Get("kibana_uri").(string),
+		KibanaBaseUri: d.Get("kibana_uri").(string),
+		KibanaType:    kibana.ParseKibanaType(d.Get("kibana_type").(string)),
+		KibanaVersion: d.Get("kibana_version").(string),
 	}
 
 	return kibana.NewClient(config), nil
