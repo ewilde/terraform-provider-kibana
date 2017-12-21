@@ -18,6 +18,7 @@ build: fmtcheck vet test
 	@echo "Build succeeded"
 
 docker-build:
+	@echo building docker ELK_VERSION:$(ELK_VERSION) KIBANA_TYPE: $(KIBANA_TYPE) MAIN_VERSION: $(MAIN_VERSION)
 	@if [ "$(ELK_VERSION)" = "./..." ]; then \
 		echo "ERROR: Set ELK_VERSION to a specific version. For example,"; \
 		echo "  make docker-build"; \
