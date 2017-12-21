@@ -60,7 +60,6 @@ func RunTestsWithContainers(m *testing.M, client *KibanaClient) {
 
 func DefaultTestKibanaClient() *KibanaClient {
 	kibanaClient := NewClient(NewDefaultConfig())
-	kibanaClient.Config.Debug = true
 	kibanaClient.SetAuth(authForContainerVersion[kibanaClient.Config.KibanaVersion][kibanaClient.Config.KibanaType])
 	return kibanaClient
 }
