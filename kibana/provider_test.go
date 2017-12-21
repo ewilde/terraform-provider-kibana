@@ -5,18 +5,16 @@ import (
 
 	"fmt"
 	"github.com/ewilde/go-kibana"
-	"github.com/ewilde/go-kibana/containers"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
-	"log"
-	"os"
 	"strconv"
 	"strings"
 )
 
 var testAccProviders map[string]terraform.ResourceProvider
 var testAccProvider *schema.Provider
+var testConfig *kibana.Config
 
 func init() {
 	testAccProvider = Provider().(*schema.Provider)
@@ -32,47 +30,13 @@ func TestProvider(t *testing.T) {
 }
 
 func TestMain(m *testing.M) {
-	kibanaClient := kibana.NewClient(kibana.NewDefaultConfig())
-
-	if kibanaClient.Config.KibanaType == kibana.KibanaTypeLogzio {
-		runTestsWithoutContainers(m)
+	client := kibana.DefaultTestKibanaClient()
+	testConfig = client.Config
+	if client.Config.KibanaType == kibana.KibanaTypeVanilla {
+		kibana.RunTestsWithContainers(m, client)
 	} else {
-		runTestsWithContainers(m)
+		kibana.RunTestsWithoutContainers(m)
 	}
-
-}
-func runTestsWithContainers(m *testing.M) {
-	testContext, err := containers.StartKibana()
-	if err != nil {
-		log.Fatalf("Could not start kibana: %v", err)
-	}
-
-	if os.Getenv(kibana.EnvKibanaUri) == "" {
-		err = os.Setenv(kibana.EnvKibanaUri, testContext.KibanaUri)
-	}
-
-	if err != nil {
-		log.Fatalf("Could not set kibana host address env variable: %v", err)
-	}
-
-	if os.Getenv(kibana.EnvKibanaIndexId) == "" {
-		err = os.Setenv(kibana.EnvKibanaIndexId, testContext.KibanaIndexId)
-	}
-
-	if err != nil {
-		log.Fatalf("Could not set kibana index id env variable: %v", err)
-	}
-
-	code := m.Run()
-
-	containers.StopKibana(testContext)
-
-	os.Exit(code)
-}
-
-func runTestsWithoutContainers(m *testing.M) {
-	code := m.Run()
-	os.Exit(code)
 }
 
 func CheckResourceAttrSet(name, key, value string) resource.TestCheckFunc {

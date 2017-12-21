@@ -10,13 +10,23 @@ import (
 	"strings"
 )
 
+var testCreate = map[kibana.KibanaType]string{
+	kibana.KibanaTypeVanilla: testCreateSearchConfig,
+	kibana.KibanaTypeLogzio:  testCreateSearchLogzioConfig,
+}
+
+var testUpdate = map[kibana.KibanaType]string{
+	kibana.KibanaTypeVanilla: testUpdateSearchConfig,
+	kibana.KibanaTypeLogzio:  testUpdateSearchLogzioConfig,
+}
+
 func TestAccKibanaSearchApi(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckKibanaSearchDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testCreateSearchConfig,
+				Config: testCreate[testConfig.KibanaType],
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckKibanaSearchExists("kibana_search.china"),
 					resource.TestCheckResourceAttr("kibana_search.china", "name", "Chinese search"),
@@ -30,7 +40,7 @@ func TestAccKibanaSearchApi(t *testing.T) {
 				),
 			},
 			{
-				Config: testUpdateSearchConfig,
+				Config: testUpdate[testAccProvider.Meta().(*kibana.KibanaClient).Config.KibanaType],
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckKibanaSearchExists("kibana_search.china"),
 					resource.TestCheckResourceAttr("kibana_search.china", "name", "Chinese search - errors"),
@@ -152,6 +162,54 @@ data "kibana_index" "main" {
 	filter = {
 		name = "title"
 		values = ["logstash-*"]
+	}
+}
+`
+
+const testCreateSearchLogzioConfig = `
+resource "kibana_search" "china" {
+	name 	        = "Chinese search"
+	description     = "Chinese search results"
+	display_columns = ["_source"]
+	sort_by_columns = ["@timestamp"]
+	search = {
+		index   = "[logzioCustomerIndex]YYMMDD"
+		filters = [
+			{
+				match = {
+					field_name = "geo.src"
+					query      = "CN"
+					type       = "phrase"
+				}
+			}
+		]
+	}
+}
+`
+const testUpdateSearchLogzioConfig = `
+resource "kibana_search" "china" {
+	name 	        = "Chinese search - errors"
+	description     = "Chinese errors"
+	display_columns = ["_source"]
+	sort_by_columns = ["@timestamp"]
+	search = {
+		index   = "[logzioCustomerIndex]YYMMDD"
+		filters = [
+			{
+				match = {
+					field_name = "geo.src"
+					query      = "CN"
+					type       = "phrase"
+				},
+			},
+			{
+				match = {
+					field_name = "@tags"
+					query      = "error"
+					type       = "phrase"
+				}
+			}
+		]
 	}
 }
 `

@@ -17,7 +17,7 @@ indent_size = 4
 
 ; YAML
 [*.{yaml,yml}]
-indent_style = tab
+indent_style = space
 indent_size = 2
 
 [{Makefile,GNUmakefile}]

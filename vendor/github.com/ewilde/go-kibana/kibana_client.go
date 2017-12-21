@@ -11,9 +11,12 @@ import (
 
 const EnvElasticSearchPath = "ELASTIC_SEARCH_PATH"
 const EnvKibanaUri = "KIBANA_URI"
+const EnvKibanaUserName = "KIBANA_USERNAME"
+const EnvKibanaPassword = "KIBANA_PASSWORD"
 const EnvKibanaVersion = "ELK_VERSION"
 const EnvKibanaIndexId = "KIBANA_INDEX_ID"
 const EnvKibanaType = "KIBANA_TYPE"
+const EnvLogzClientId = "LOGZ_CLIENT_ID"
 const DefaultKibanaUri = "http://localhost:5601"
 const DefaultElasticSearchPath = "/es_admin/.kibana"
 const DefaultKibanaVersion6 = "6.0.0"

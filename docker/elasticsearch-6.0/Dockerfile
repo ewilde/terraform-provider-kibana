@@ -1,4 +1,4 @@
-FROM docker.elastic.co/elasticsearch/elasticsearch:6.0.0
+FROM docker.elastic.co/elasticsearch/elasticsearch-oss:6.0.0
 
 RUN yum install -y epel-release && yum install -y nodejs && \
     npm install -g makelogs

@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"strings"
+	"testing"
 )
 
 type testContext struct {
@@ -15,6 +16,63 @@ type testContext struct {
 
 type container interface {
 	Stop() error
+}
+
+const defaultElkVersion = "6.0.0"
+
+var authForContainerVersion = map[string]map[KibanaType]AuthenticationHandler{
+	"5.5.3": {
+		KibanaTypeVanilla: &BasicAuthenticationHandler{"elastic", "changeme"},
+		KibanaTypeLogzio:  createLogzAuthenticationHandler(),
+	},
+	"6.0.0": {KibanaTypeVanilla: &NoAuthenticationHandler{}},
+}
+
+func RunTestsWithoutContainers(m *testing.M) {
+	code := m.Run()
+	os.Exit(code)
+}
+
+func RunTestsWithContainers(m *testing.M, client *KibanaClient) {
+	testContext, err := startKibana(GetEnvVarOrDefault("ELK_VERSION", defaultElkVersion), client)
+	if err != nil {
+		log.Fatalf("Could start kibana: %v", err)
+	}
+
+	err = os.Setenv(EnvKibanaUri, testContext.KibanaUri)
+	if err != nil {
+		log.Fatalf("Could not set kibana uri env variable: %v", err)
+	}
+
+	err = os.Setenv(EnvKibanaIndexId, testContext.KibanaIndexId)
+	if err != nil {
+		log.Fatalf("Could not set kibana index id env variable: %v", err)
+	}
+
+	code := m.Run()
+
+	if client.Config.KibanaType == KibanaTypeVanilla {
+		stopKibana(testContext)
+	}
+
+	os.Exit(code)
+}
+
+func DefaultTestKibanaClient() *KibanaClient {
+	kibanaClient := NewClient(NewDefaultConfig())
+	kibanaClient.Config.Debug = true
+	kibanaClient.SetAuth(authForContainerVersion[kibanaClient.Config.KibanaVersion][kibanaClient.Config.KibanaType])
+	return kibanaClient
+}
+
+func createLogzAuthenticationHandler() *LogzAuthenticationHandler {
+	return &LogzAuthenticationHandler{
+		Auth0Uri: "https://logzio.auth0.com",
+		LogzUri:  "https://app-eu.logz.io",
+		ClientId: os.Getenv(EnvLogzClientId),
+		UserName: os.Getenv(EnvKibanaUserName),
+		Password: os.Getenv(EnvKibanaPassword),
+	}
 }
 
 func startKibana(elkVersion string, client *KibanaClient) (*testContext, error) {

@@ -1,20 +1,31 @@
-GOFMT_FILES?=$$(find . -name '*.go' |grep -v vendor)
+.DEFAULT_GOAL := default
 
-default: build testacc
+GOFMT_FILES?=$$(find . -name '*.go' |grep -v vendor)
+$(eval REMAINDER := $$$(ELK_VERSION))
+MAIN_VERSION := $(shell echo $(ELK_VERSION) | head -c 3)
+
+default: build test
 
 travisbuild: deps default
 
-testacc: fmtcheck docker-build
+test: fmtcheck docker-build
 	TF_ACC=1 go test -v ./kibana -run="TestAcc"
 
-build: fmtcheck vet testacc
+build: fmtcheck vet test
 	@go install
 	@mkdir -p ~/.terraform.d/plugins/
 	@cp $(GOPATH)/bin/terraform-provider-kibana ~/.terraform.d/plugins/terraform-provider-kibana
 	@echo "Build succeeded"
 
 docker-build:
-	cd docker/elasticsearch && docker build . -t elastic-local:6.0.0
+	@if [ "$(ELK_VERSION)" = "./..." ]; then \
+		echo "ERROR: Set ELK_VERSION to a specific version. For example,"; \
+		echo "  make docker-build"; \
+		exit 1; \
+	fi
+	@if [ "$(KIBANA_TYPE)" = "KibanaTypeVanilla" ]; then \
+		cd docker/elasticsearch-$(MAIN_VERSION) && docker build . -t elastic-local:$(ELK_VERSION); \
+	fi
 
 start-kibana: docker-build
 	@sh -c "'$(CURDIR)/scripts/start-docker.sh'"
@@ -48,4 +59,4 @@ vet:
 		exit 1; \
 	fi
 
-.PHONY: build test testacc vet fmt fmtcheck errcheck vendor-status test-compile release docker-build start-kibana
+.PHONY: build test vet fmt fmtcheck errcheck vendor-status test-compile release docker-build start-kibana

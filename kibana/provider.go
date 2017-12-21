@@ -39,19 +39,19 @@ func Provider() terraform.ResourceProvider {
 			"kibana_username": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				DefaultFunc: envDefaultFuncWithDefault("KIBANA_USERNAME", ""),
+				DefaultFunc: envDefaultFuncWithDefault(kibana.EnvKibanaUserName, ""),
 				Description: "The username used to connect to kibana",
 			},
 			"kibana_password": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				DefaultFunc: envDefaultFuncWithDefault("KIBANA_PASSWORD", ""),
+				DefaultFunc: envDefaultFuncWithDefault(kibana.EnvKibanaPassword, ""),
 				Description: "The password used to connect to kibana",
 			},
 			"logzio_client_id": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				DefaultFunc: envDefaultFuncWithDefault("LOGZIO_CLIENT_ID", ""),
+				DefaultFunc: envDefaultFuncWithDefault(kibana.EnvLogzClientId, ""),
 				Description: "The logz.io client id used when connecting to logz.io",
 			},
 		},
@@ -92,7 +92,7 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 
 	client := kibana.NewClient(config)
 	client.SetAuth(authForContainerVersion[config.KibanaType](config, d))
-	client.Config.Debug = true
+	client.Config.Debug = false
 	return client, nil
 }
 
