@@ -10,6 +10,7 @@ import (
 type HttpAgent struct {
 	client      *gorequest.SuperAgent
 	authHandler AuthenticationHandler
+	config      *Config
 }
 
 type AuthenticationHandler interface {
@@ -41,8 +42,8 @@ type Auth0Response struct {
 
 func NewHttpAgent(config *Config, authHandler AuthenticationHandler) *HttpAgent {
 	return &HttpAgent{
-		client:      gorequest.New(),
 		authHandler: authHandler,
+		config:      config,
 	}
 }
 
@@ -52,23 +53,27 @@ func (authClient *HttpAgent) Auth(handler AuthenticationHandler) *HttpAgent {
 }
 
 func (authClient *HttpAgent) Get(targetUrl string) *HttpAgent {
-	authClient.client.Get(targetUrl)
-	return authClient
+	agent := authClient.clone()
+	agent.client.Get(targetUrl)
+	return agent
 }
 
 func (authClient *HttpAgent) Delete(targetUrl string) *HttpAgent {
-	authClient.client.Delete(targetUrl)
-	return authClient
+	agent := authClient.clone()
+	agent.client.Delete(targetUrl)
+	return agent
 }
 
 func (authClient *HttpAgent) Put(targetUrl string) *HttpAgent {
-	authClient.client.Put(targetUrl)
-	return authClient
+	agent := authClient.clone()
+	agent.client.Put(targetUrl)
+	return agent
 }
 
 func (authClient *HttpAgent) Post(targetUrl string) *HttpAgent {
-	authClient.client.Post(targetUrl)
-	return authClient
+	agent := authClient.clone()
+	agent.client.Post(targetUrl)
+	return agent
 }
 
 func (authClient *HttpAgent) Query(content interface{}) *HttpAgent {
@@ -163,4 +168,15 @@ func (auth *LogzAuthenticationHandler) setLogzHeaders(agent *gorequest.SuperAgen
 		Set("Content-Type", "application/json").
 		Set("x-auth-token", auth.sessionToken)
 
+}
+
+func (authClient *HttpAgent) clone() *HttpAgent {
+	return &HttpAgent{authHandler: authClient.authHandler, client: authClient.createSuperAgent(), config: authClient.config}
+}
+
+func (agent *HttpAgent) createSuperAgent() *gorequest.SuperAgent {
+	superAgent := gorequest.New()
+	superAgent.Debug = agent.config.Debug
+
+	return superAgent
 }

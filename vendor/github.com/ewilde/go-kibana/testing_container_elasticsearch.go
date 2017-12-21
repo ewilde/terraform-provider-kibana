@@ -1,8 +1,10 @@
 package kibana
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
+	"github.com/fsouza/go-dockerclient"
 	"github.com/parnurzeal/gorequest"
 	"gopkg.in/ory-am/dockertest.v3"
 	"log"
@@ -37,10 +39,27 @@ func newElasticSearchContainer(pool *dockertest.Pool, elasticSearchVersion strin
 	elasticSearchAddress := fmt.Sprintf("http://localhost:%v", resource.GetPort("9200/tcp"))
 
 	if err := pool.Retry(func() error {
-		client := gorequest.New()
-		response, body, err := client.Get(elasticSearchAddress).SetBasicAuth("elastic", "changeme").End()
+		container, err := pool.Client.InspectContainer(resource.Container.ID)
 		if err != nil {
-			return err[0]
+			return err
+		}
+
+		if !container.State.Running {
+			logOptions := &docker.LogsOptions{Container: container.ID}
+			if err := pool.Client.Logs(*logOptions); err != nil {
+				return errors.New("Container is not running: " + container.State.StateString())
+			}
+
+			buf := new(bytes.Buffer)
+			logOptions.OutputStream.Write(buf.Bytes())
+
+			return errors.New("Container is not running: " + buf.String())
+		}
+
+		client := gorequest.New()
+		response, body, errs := client.Get(elasticSearchAddress).SetBasicAuth("elastic", "changeme").End()
+		if errs != nil {
+			return errs[0]
 		}
 
 		if response.StatusCode >= 300 {

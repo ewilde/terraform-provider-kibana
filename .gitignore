@@ -25,6 +25,7 @@ website/node_modules
 *.iml
 terraform-provider-kibana
 website/vendor
+terraform.tfvars
 
 # Test exclusions
 !command/test-fixtures/**/*.tfstate

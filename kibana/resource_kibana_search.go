@@ -7,6 +7,7 @@ import (
 	"github.com/ewilde/go-kibana"
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
+	"log"
 )
 
 func resourceKibanaSearch() *schema.Resource {
@@ -96,6 +97,8 @@ func resourceKibanaSearchCreate(d *schema.ResourceData, meta interface{}) error 
 		return fmt.Errorf("failed to create kibana search api: %v error: %v", searchRequest, err)
 	}
 
+	log.Printf("[INFO] Creating Kibana search %s", searchRequest.Attributes.Title)
+
 	api, err := meta.(*kibana.KibanaClient).Search().Create(searchRequest)
 
 	if err != nil {
@@ -107,10 +110,12 @@ func resourceKibanaSearchCreate(d *schema.ResourceData, meta interface{}) error 
 }
 
 func resourceKibanaSearchRead(d *schema.ResourceData, meta interface{}) error {
+	log.Printf("[INFO] Reading Kibana search %s", d.Id())
+
 	response, err := meta.(*kibana.KibanaClient).Search().GetById(d.Id())
 
 	if err != nil {
-		return fmt.Errorf("could not find kibana search: %v", err)
+		return handleNotFoundError(err, d)
 	}
 
 	d.Set("name", response.Attributes.Title)
@@ -153,6 +158,8 @@ func resourceKibanaSearchUpdate(d *schema.ResourceData, meta interface{}) error 
 		return fmt.Errorf("failed to update kibana search api: %v error: %v", searchRequest, err)
 	}
 
+	log.Printf("[INFO] Creating Kibana search %s", searchRequest.Attributes.Title)
+
 	_, err = meta.(*kibana.KibanaClient).Search().Update(d.Id(), &kibana.UpdateSearchRequest{Attributes: searchRequest.Attributes})
 
 	if err != nil {
@@ -163,11 +170,15 @@ func resourceKibanaSearchUpdate(d *schema.ResourceData, meta interface{}) error 
 }
 
 func resourceKibanaSearchDelete(d *schema.ResourceData, meta interface{}) error {
+	log.Printf("[INFO] Creating Kibana search %s", d.Id())
+
 	err := meta.(*kibana.KibanaClient).Search().Delete(d.Id())
 
 	if err != nil {
 		return fmt.Errorf("could not delete kibana search: %v", err)
 	}
+
+	d.SetId("")
 
 	return nil
 }

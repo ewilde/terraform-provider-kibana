@@ -32,18 +32,33 @@ func TestProvider(t *testing.T) {
 }
 
 func TestMain(m *testing.M) {
+	kibanaClient := kibana.NewClient(kibana.NewDefaultConfig())
 
+	if kibanaClient.Config.KibanaType == kibana.KibanaTypeLogzio {
+		runTestsWithoutContainers(m)
+	} else {
+		runTestsWithContainers(m)
+	}
+
+}
+func runTestsWithContainers(m *testing.M) {
 	testContext, err := containers.StartKibana()
 	if err != nil {
 		log.Fatalf("Could not start kibana: %v", err)
 	}
 
-	err = os.Setenv(kibana.EnvKibanaUri, testContext.KibanaUri)
+	if os.Getenv(kibana.EnvKibanaUri) == "" {
+		err = os.Setenv(kibana.EnvKibanaUri, testContext.KibanaUri)
+	}
+
 	if err != nil {
 		log.Fatalf("Could not set kibana host address env variable: %v", err)
 	}
 
-	err = os.Setenv(kibana.EnvKibanaIndexId, testContext.KibanaIndexId)
+	if os.Getenv(kibana.EnvKibanaIndexId) == "" {
+		err = os.Setenv(kibana.EnvKibanaIndexId, testContext.KibanaIndexId)
+	}
+
 	if err != nil {
 		log.Fatalf("Could not set kibana index id env variable: %v", err)
 	}
@@ -53,7 +68,11 @@ func TestMain(m *testing.M) {
 	containers.StopKibana(testContext)
 
 	os.Exit(code)
+}
 
+func runTestsWithoutContainers(m *testing.M) {
+	code := m.Run()
+	os.Exit(code)
 }
 
 func CheckResourceAttrSet(name, key, value string) resource.TestCheckFunc {

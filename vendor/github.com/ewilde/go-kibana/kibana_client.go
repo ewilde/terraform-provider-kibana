@@ -1,6 +1,7 @@
 package kibana
 
 import (
+	"fmt"
 	"github.com/google/go-querystring/query"
 	"net/url"
 	"os"
@@ -8,11 +9,13 @@ import (
 	"strings"
 )
 
+const EnvElasticSearchPath = "ELASTIC_SEARCH_PATH"
 const EnvKibanaUri = "KIBANA_URI"
 const EnvKibanaVersion = "ELK_VERSION"
 const EnvKibanaIndexId = "KIBANA_INDEX_ID"
 const EnvKibanaType = "KIBANA_TYPE"
 const DefaultKibanaUri = "http://localhost:5601"
+const DefaultElasticSearchPath = "/es_admin/.kibana"
 const DefaultKibanaVersion6 = "6.0.0"
 const DefaultKibanaVersion553 = "5.5.3"
 const DefaultKibanaVersion = DefaultKibanaVersion6
@@ -43,10 +46,12 @@ func ParseKibanaType(value string) KibanaType {
 }
 
 type Config struct {
-	DefaultIndexId string
-	KibanaBaseUri  string
-	KibanaVersion  string
-	KibanaType     KibanaType
+	Debug             bool
+	DefaultIndexId    string
+	ElasticSearchPath string
+	KibanaBaseUri     string
+	KibanaVersion     string
+	KibanaType        KibanaType
 }
 
 type KibanaClient struct {
@@ -65,10 +70,10 @@ var indexClientFromVersion = map[string]func(kibanaClient *KibanaClient) IndexPa
 
 var seachClientFromVersion = map[string]func(kibanaClient *KibanaClient) SearchClient{
 	"6.0.0": func(kibanaClient *KibanaClient) SearchClient {
-		return &SearchClient600{config: kibanaClient.Config, client: kibanaClient.client}
+		return &searchClient600{config: kibanaClient.Config, client: kibanaClient.client}
 	},
 	"5.5.3": func(kibanaClient *KibanaClient) SearchClient {
-		return &SearchClient553{config: kibanaClient.Config, client: kibanaClient.client}
+		return &searchClient553{config: kibanaClient.Config, client: kibanaClient.client}
 	},
 }
 
@@ -83,9 +88,14 @@ var savedObjectsClientFromVersion = map[string]func(kibanaClient *KibanaClient) 
 
 func NewDefaultConfig() *Config {
 	config := &Config{
-		KibanaBaseUri: DefaultKibanaUri,
-		KibanaVersion: DefaultKibanaVersion,
-		KibanaType:    KibanaTypeVanilla,
+		ElasticSearchPath: DefaultElasticSearchPath,
+		KibanaBaseUri:     DefaultKibanaUri,
+		KibanaVersion:     DefaultKibanaVersion,
+		KibanaType:        KibanaTypeVanilla,
+	}
+
+	if value := os.Getenv(EnvElasticSearchPath); value != "" {
+		config.ElasticSearchPath = value
 	}
 
 	if value := os.Getenv(EnvKibanaUri); value != "" {
@@ -114,9 +124,10 @@ func NewDefaultConfig() *Config {
 }
 
 func NewClient(config *Config) *KibanaClient {
+	agent := NewHttpAgent(config, &NoAuthenticationHandler{})
 	return &KibanaClient{
 		Config: config,
-		client: NewHttpAgent(config, &NoAuthenticationHandler{}),
+		client: agent,
 	}
 }
 
@@ -135,6 +146,10 @@ func (kibanaClient *KibanaClient) IndexPattern() IndexPatternClient {
 
 func (kibanaClient *KibanaClient) SavedObjects() SavedObjectsClient {
 	return savedObjectsClientFromVersion[kibanaClient.Config.KibanaVersion](kibanaClient)
+}
+
+func (config *Config) BuildFullPath(format string, a ...interface{}) string {
+	return config.KibanaBaseUri + config.ElasticSearchPath + fmt.Sprintf(format, a...)
 }
 
 func addQueryString(currentUrl string, filter interface{}) (string, error) {

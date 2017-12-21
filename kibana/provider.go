@@ -1,15 +1,23 @@
 package kibana
 
 import (
+	"fmt"
 	"github.com/ewilde/go-kibana"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
+	"log"
 	"os"
 )
 
 func Provider() terraform.ResourceProvider {
 	return &schema.Provider{
 		Schema: map[string]*schema.Schema{
+			"elastic_search_path": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				DefaultFunc: envDefaultFuncWithDefault(kibana.EnvElasticSearchPath, kibana.DefaultElasticSearchPath),
+				Description: "The elastic search path, defaults to: " + kibana.DefaultElasticSearchPath,
+			},
 			"kibana_uri": {
 				Type:        schema.TypeString,
 				Optional:    true,
@@ -27,6 +35,24 @@ func Provider() terraform.ResourceProvider {
 				Optional:    true,
 				DefaultFunc: envDefaultFuncWithDefault(kibana.EnvKibanaVersion, kibana.DefaultKibanaVersion),
 				Description: "The version of kibana being terraformed either 6.0.0 or 5.5.3, defaults to: " + kibana.DefaultKibanaVersion,
+			},
+			"kibana_username": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				DefaultFunc: envDefaultFuncWithDefault("KIBANA_USERNAME", ""),
+				Description: "The username used to connect to kibana",
+			},
+			"kibana_password": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				DefaultFunc: envDefaultFuncWithDefault("KIBANA_PASSWORD", ""),
+				Description: "The password used to connect to kibana",
+			},
+			"logzio_client_id": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				DefaultFunc: envDefaultFuncWithDefault("LOGZIO_CLIENT_ID", ""),
+				Description: "The logz.io client id used when connecting to logz.io",
 			},
 		},
 
@@ -58,10 +84,58 @@ func envDefaultFuncWithDefault(key string, defaultValue string) schema.SchemaDef
 
 func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 	config := &kibana.Config{
-		KibanaBaseUri: d.Get("kibana_uri").(string),
-		KibanaType:    kibana.ParseKibanaType(d.Get("kibana_type").(string)),
-		KibanaVersion: d.Get("kibana_version").(string),
+		ElasticSearchPath: d.Get("elastic_search_path").(string),
+		KibanaBaseUri:     d.Get("kibana_uri").(string),
+		KibanaType:        kibana.ParseKibanaType(d.Get("kibana_type").(string)),
+		KibanaVersion:     d.Get("kibana_version").(string),
 	}
 
-	return kibana.NewClient(config), nil
+	client := kibana.NewClient(config)
+	client.SetAuth(authForContainerVersion[config.KibanaType](config, d))
+	client.Config.Debug = true
+	return client, nil
+}
+
+var authForContainerVersion = map[kibana.KibanaType]func(config *kibana.Config, d *schema.ResourceData) kibana.AuthenticationHandler{
+	kibana.KibanaTypeLogzio:  getLogzioAuthHandler,
+	kibana.KibanaTypeVanilla: getAuthHandler,
+}
+
+func getAuthHandler(config *kibana.Config, d *schema.ResourceData) kibana.AuthenticationHandler {
+	userName := ""
+	password := ""
+
+	if v, ok := d.GetOk("kibana_username"); ok {
+		userName = v.(string)
+	}
+
+	if v, ok := d.GetOk("kibana_password"); ok {
+		password = v.(string)
+	}
+
+	if userName != "" && password != "" {
+		return kibana.NewBasicAuthentication(userName, password)
+	}
+
+	return &kibana.NoAuthenticationHandler{}
+}
+
+func getLogzioAuthHandler(config *kibana.Config, d *schema.ResourceData) kibana.AuthenticationHandler {
+	return &kibana.LogzAuthenticationHandler{
+		Auth0Uri: "https://logzio.auth0.com",
+		LogzUri:  config.KibanaBaseUri,
+		ClientId: d.Get("logzio_client_id").(string),
+		UserName: d.Get("kibana_username").(string),
+		Password: d.Get("kibana_password").(string),
+	}
+}
+
+func handleNotFoundError(err error, d *schema.ResourceData) error {
+	if httpError, ok := err.(*kibana.HttpError); ok && httpError.Code == 404 {
+		log.Printf("[WARN] Removing %s because it's gone", d.Id())
+		d.SetId("")
+		return nil
+	}
+
+	return fmt.Errorf("error reading: %s: %s", d.Id(), err)
 }

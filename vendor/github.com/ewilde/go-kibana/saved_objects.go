@@ -89,7 +89,7 @@ func (api *savedObjectsClient600) GetByType(request *SavedObjectRequest) (*Saved
 }
 
 func (api *savedObjectsClient553) GetByType(request *SavedObjectRequest) (*SavedObjectResponse, error) {
-	address := fmt.Sprintf("%s/%s/_search?size=%d", api.config.KibanaBaseUri, api.getUriBase(request.Type), request.PerPage)
+	address := api.config.BuildFullPath("/%s/_search?size=%d", request.Type, request.PerPage)
 	apiResponse, body, errs := api.client.
 		Post(address).
 		Set("kbn-version", api.config.KibanaVersion).
@@ -132,14 +132,6 @@ func (api *savedObjectsClient553) GetByType(request *SavedObjectRequest) (*Saved
 	}
 
 	return savedObjectResponse, nil
-}
-
-func (api *savedObjectsClient553) getUriBase(action string) string {
-	if api.config.KibanaType == KibanaTypeLogzio {
-		return action
-	}
-
-	return fmt.Sprintf("es_admin/.kibana/%s", action)
 }
 
 func NewSavedObjectRequestBuilder() *SavedObjectRequestBuilder {

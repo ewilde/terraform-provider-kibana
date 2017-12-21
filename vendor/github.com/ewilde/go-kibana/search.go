@@ -20,12 +20,12 @@ type SearchClient interface {
 	GetById(id string) (*Search, error)
 	Delete(id string) error
 }
-type SearchClient600 struct {
+type searchClient600 struct {
 	config *Config
 	client *HttpAgent
 }
 
-type SearchClient553 struct {
+type searchClient553 struct {
 	config *Config
 	client *HttpAgent
 }
@@ -55,10 +55,17 @@ type SearchAttributes struct {
 	KibanaSavedObjectMeta *SearchKibanaSavedObjectMeta `json:"kibanaSavedObjectMeta"`
 }
 
-type SearchCreateResult553 struct {
+type searchCreateResult553 struct {
 	Id      string `json:"_id"`
 	Type    string `json:"_type"`
 	Version int    `json:"_version"`
+}
+
+type searchReadResult553 struct {
+	Id      string            `json:"_id"`
+	Type    string            `json:"_type"`
+	Version int               `json:"_version"`
+	Source  *SearchAttributes `json:"_source"`
 }
 
 type SearchKibanaSavedObjectMeta struct {
@@ -106,7 +113,7 @@ type SearchSourceBuilder struct {
 	filters      []*SearchFilter
 }
 
-func (api *SearchClient600) Create(request *CreateSearchRequest) (*Search, error) {
+func (api *searchClient600) Create(request *CreateSearchRequest) (*Search, error) {
 	response, body, err := api.client.
 		Post(api.config.KibanaBaseUri+savedObjectsPath+"search?overwrite=true").
 		Set("kbn-version", api.config.KibanaVersion).
@@ -118,7 +125,7 @@ func (api *SearchClient600) Create(request *CreateSearchRequest) (*Search, error
 	}
 
 	if response.StatusCode >= 300 {
-		return nil, errors.New(fmt.Sprintf("Status: %d, %s", response.StatusCode, body))
+		return nil, NewError(response, body, "Could not create search")
 	}
 
 	createResponse := &Search{}
@@ -130,7 +137,7 @@ func (api *SearchClient600) Create(request *CreateSearchRequest) (*Search, error
 	return createResponse, nil
 }
 
-func (api *SearchClient600) Update(id string, request *UpdateSearchRequest) (*Search, error) {
+func (api *searchClient600) Update(id string, request *UpdateSearchRequest) (*Search, error) {
 	response, body, err := api.client.
 		Post(api.config.KibanaBaseUri+savedObjectsPath+"search/"+id+"?overwrite=true").
 		Set("kbn-version", api.config.KibanaVersion).
@@ -142,7 +149,7 @@ func (api *SearchClient600) Update(id string, request *UpdateSearchRequest) (*Se
 	}
 
 	if response.StatusCode >= 300 {
-		return nil, errors.New(fmt.Sprintf("Status: %d, %s", response.StatusCode, body))
+		return nil, NewError(response, body, "Could not update search")
 	}
 
 	createResponse := &Search{}
@@ -154,7 +161,7 @@ func (api *SearchClient600) Update(id string, request *UpdateSearchRequest) (*Se
 	return createResponse, nil
 }
 
-func (api *SearchClient600) GetById(id string) (*Search, error) {
+func (api *searchClient600) GetById(id string) (*Search, error) {
 	response, body, err := api.client.
 		Get(api.config.KibanaBaseUri+savedObjectsPath+"search/"+id).
 		Set("kbn-version", api.config.KibanaVersion).
@@ -165,7 +172,7 @@ func (api *SearchClient600) GetById(id string) (*Search, error) {
 	}
 
 	if response.StatusCode >= 300 {
-		return nil, errors.New(fmt.Sprintf("Status: %d, %s", response.StatusCode, body))
+		return nil, NewError(response, body, "Could not fetch search")
 	}
 
 	createResponse := &Search{}
@@ -177,23 +184,23 @@ func (api *SearchClient600) GetById(id string) (*Search, error) {
 	return createResponse, nil
 }
 
-func (api *SearchClient600) Delete(id string) error {
+func (api *searchClient600) Delete(id string) error {
 	response, body, err := api.client.
 		Delete(api.config.KibanaBaseUri+savedObjectsPath+"search/"+id).
 		Set("kbn-version", api.config.KibanaVersion).
 		End()
 
 	if err != nil {
-		return fmt.Errorf("could not delete search with id:%s response: %+v %s errors: %+v", id, response, body, err)
+		return NewError(response, body, "Could not delete search")
 	}
 
 	return nil
 }
 
-func (api *SearchClient553) Create(request *CreateSearchRequest) (*Search, error) {
+func (api *searchClient553) Create(request *CreateSearchRequest) (*Search, error) {
 	id := uuid.NewV4().String()
 	response, body, errs := api.client.
-		Post(fmt.Sprintf("%s/%s/%s", api.config.KibanaBaseUri, api.getUriBase("search"), id)).
+		Post(api.config.BuildFullPath("/%s/%s", "search", id)).
 		Set("kbn-version", api.config.KibanaVersion).
 		Send(request.Attributes).
 		End()
@@ -203,10 +210,10 @@ func (api *SearchClient553) Create(request *CreateSearchRequest) (*Search, error
 	}
 
 	if response.StatusCode >= 300 {
-		return nil, errors.New(fmt.Sprintf("Status: %d, %s", response.StatusCode, body))
+		return nil, NewError(response, body, "Could not create search")
 	}
 
-	createResponse := &SearchCreateResult553{}
+	createResponse := &searchCreateResult553{}
 	err := json.Unmarshal([]byte(body), createResponse)
 	if err != nil {
 		return nil, fmt.Errorf("could not parse fields from create response, error: %v", err)
@@ -220,9 +227,9 @@ func (api *SearchClient553) Create(request *CreateSearchRequest) (*Search, error
 	}, nil
 }
 
-func (api *SearchClient553) Update(id string, request *UpdateSearchRequest) (*Search, error) {
+func (api *searchClient553) Update(id string, request *UpdateSearchRequest) (*Search, error) {
 	response, body, err := api.client.
-		Post(fmt.Sprintf("%s/%s/%s", api.config.KibanaBaseUri, api.getUriBase("search"), id)).
+		Post(api.config.BuildFullPath("/%s/%s", "search", id)).
 		Set("kbn-version", api.config.KibanaVersion).
 		Send(request.Attributes).
 		End()
@@ -232,10 +239,10 @@ func (api *SearchClient553) Update(id string, request *UpdateSearchRequest) (*Se
 	}
 
 	if response.StatusCode >= 300 {
-		return nil, errors.New(fmt.Sprintf("Status: %d, %s", response.StatusCode, body))
+		return nil, NewError(response, body, "Could not update search")
 	}
 
-	createResponse := &SearchCreateResult553{}
+	createResponse := &searchCreateResult553{}
 	error := json.Unmarshal([]byte(body), createResponse)
 	if error != nil {
 		return nil, fmt.Errorf("could not parse fields from create response, error: %v", error)
@@ -249,9 +256,9 @@ func (api *SearchClient553) Update(id string, request *UpdateSearchRequest) (*Se
 	}, nil
 }
 
-func (api *SearchClient553) GetById(id string) (*Search, error) {
+func (api *searchClient553) GetById(id string) (*Search, error) {
 	response, body, err := api.client.
-		Get(fmt.Sprintf("%s/%s/%s", api.config.KibanaBaseUri, api.getUriBase("search"), id)).
+		Get(api.config.BuildFullPath("/%s/%s", "search", id)).
 		Set("kbn-version", api.config.KibanaVersion).
 		End()
 
@@ -260,37 +267,38 @@ func (api *SearchClient553) GetById(id string) (*Search, error) {
 	}
 
 	if response.StatusCode >= 300 {
-		return nil, errors.New(fmt.Sprintf("Status: %d, %s", response.StatusCode, body))
+		if api.config.KibanaType == KibanaTypeLogzio && response.StatusCode == 400 { // bug in their api reports missing search as bad request
+			response.StatusCode = 404
+		}
+
+		return nil, NewError(response, body, "Could not fetch search")
 	}
 
-	createResponse := &Search{}
+	createResponse := &searchReadResult553{}
 	error := json.Unmarshal([]byte(body), createResponse)
 	if error != nil {
 		return nil, fmt.Errorf("could not parse fields from get response, error: %v", error)
 	}
 
-	return createResponse, nil
+	return &Search{
+		Id:         createResponse.Id,
+		Version:    createResponse.Version,
+		Type:       createResponse.Type,
+		Attributes: createResponse.Source,
+	}, nil
 }
 
-func (api *SearchClient553) Delete(id string) error {
+func (api *searchClient553) Delete(id string) error {
 	response, body, err := api.client.
-		Delete(fmt.Sprintf("%s/%s/%s", api.config.KibanaBaseUri, api.getUriBase("search"), id)).
+		Delete(api.config.BuildFullPath("/%s/%s", "search", id)).
 		Set("kbn-version", api.config.KibanaVersion).
 		End()
 
 	if err != nil {
-		return fmt.Errorf("could not delete search with id:%s response: %+v %s errors: %+v", id, response, body, err)
+		return NewError(response, body, "Could not delete search")
 	}
 
 	return nil
-}
-
-func (api *SearchClient553) getUriBase(action string) string {
-	if api.config.KibanaType == KibanaTypeLogzio {
-		return action
-	}
-
-	return fmt.Sprintf("es_admin/.kibana/%s", action)
 }
 
 func NewSearchSourceBuilder() *SearchSourceBuilder {

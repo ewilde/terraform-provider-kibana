@@ -1,7 +1,11 @@
 provider "kibana" {
-    kibana_type    = "KibanaTypeLogzio"
-    kibana_version = "5.5.3"
-    kibana_uri     = "https://app-eu.logz.io/kibana/elasticsearch/logzioCustomerKibanaIndex"
+    elastic_search_path = "/kibana/elasticsearch/logzioCustomerKibanaIndex"
+    kibana_type         = "KibanaTypeLogzio"
+    kibana_version      = "5.5.3"
+    kibana_uri          = "https://app-eu.logz.io"
+    kibana_username     = "${var.kibana_username}"
+    kibana_password     = "${var.kibana_password}"
+    logzio_client_id    = "${var.logzio_client_id}"
 }
 
 resource "kibana_search" "china" {
