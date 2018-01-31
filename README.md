@@ -45,7 +45,7 @@ $ make build
 Using the provider
 ----------------------
 ## Example creating saved search resources
-```json
+```hcl-terraform
 provider "kibana" {
 }
 
