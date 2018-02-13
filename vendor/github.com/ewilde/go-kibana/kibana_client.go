@@ -62,6 +62,12 @@ type KibanaClient struct {
 	client *HttpAgent
 }
 
+type createResourceResult553 struct {
+	Id      string `json:"_id"`
+	Type    string `json:"_type"`
+	Version int    `json:"_version"`
+}
+
 var indexClientFromVersion = map[string]func(kibanaClient *KibanaClient) IndexPatternClient{
 	"6.0.0": func(kibanaClient *KibanaClient) IndexPatternClient {
 		return &IndexPatternClient600{config: kibanaClient.Config, client: kibanaClient.client}
@@ -77,6 +83,15 @@ var seachClientFromVersion = map[string]func(kibanaClient *KibanaClient) SearchC
 	},
 	"5.5.3": func(kibanaClient *KibanaClient) SearchClient {
 		return &searchClient553{config: kibanaClient.Config, client: kibanaClient.client}
+	},
+}
+
+var visualizationClientFromVersion = map[string]func(kibanaClient *KibanaClient) VisualizationClient{
+	"6.0.0": func(kibanaClient *KibanaClient) VisualizationClient {
+		return &visualizationClient600{config: kibanaClient.Config, client: kibanaClient.client}
+	},
+	"5.5.3": func(kibanaClient *KibanaClient) VisualizationClient {
+		return &visualizationClient553{config: kibanaClient.Config, client: kibanaClient.client}
 	},
 }
 
@@ -141,6 +156,10 @@ func (kibanaClient *KibanaClient) SetAuth(handler AuthenticationHandler) *Kibana
 
 func (kibanaClient *KibanaClient) Search() SearchClient {
 	return seachClientFromVersion[kibanaClient.Config.KibanaVersion](kibanaClient)
+}
+
+func (kibanaClient *KibanaClient) Visualization() VisualizationClient {
+	return visualizationClientFromVersion[kibanaClient.Config.KibanaVersion](kibanaClient)
 }
 
 func (kibanaClient *KibanaClient) IndexPattern() IndexPatternClient {

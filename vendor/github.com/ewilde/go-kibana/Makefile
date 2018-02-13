@@ -11,7 +11,7 @@ build: fmtcheck errcheck vet
 	go install
 
 test: docker-build fmtcheck
-	go test -v ./...
+	go test -v $(go list ./... | grep -v /vendor/)
 
 vet:
 	@echo "go vet ."
@@ -33,14 +33,6 @@ errcheck:
 
 vendor-status:
 	@govendor status
-
-test-compile:
-	@if [ "$(TEST)" = "./..." ]; then \
-		echo "ERROR: Set TEST to a specific package. For example,"; \
-		echo "  make test-compile TEST=./aws"; \
-		exit 1; \
-	fi
-	go test -c $(TEST) $(TESTARGS)
 
 docker-build:
 	@if [ "$(ELK_VERSION)" = "./..." ]; then \
