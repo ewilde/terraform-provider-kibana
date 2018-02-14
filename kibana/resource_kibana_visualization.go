@@ -1,12 +1,10 @@
 package kibana
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
 	"github.com/ewilde/go-kibana"
-	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/structure"
 	"log"
 )
 
@@ -37,6 +35,15 @@ func resourceKibanaVisualization() *schema.Resource {
 				Type:        schema.TypeString,
 				Description: "Visualization state for this resource",
 				Required:    true,
+				StateFunc: func(v interface{}) string {
+					json, _ := structure.NormalizeJsonString(v)
+					return json
+				},
+				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+					newJson, _ := structure.NormalizeJsonString(new)
+					oldJson, _ := structure.NormalizeJsonString(old)
+					return newJson == oldJson
+				},
 			},
 		},
 	}
@@ -71,9 +78,8 @@ func resourceKibanaVisualizationRead(d *schema.ResourceData, meta interface{}) e
 
 	d.Set("name", response.Attributes.Title)
 	d.Set("description", response.Attributes.Description)
-	d.Set("saved_search_id", response.Attributes.Description)
-	d.Set("", response.Attributes.Description)
-
+	d.Set("saved_search_id", response.Attributes.SavedSearchId)
+	d.Set("visualization_state", response.Attributes.VisualizationState)
 
 	return nil
 }

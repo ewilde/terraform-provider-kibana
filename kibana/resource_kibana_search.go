@@ -221,7 +221,7 @@ func createKibanaSearchCreateRequestFromResourceData(d *schema.ResourceData) (*k
 		return nil, err
 	}
 
-	return kibana.NewRequestBuilder().
+	return kibana.NewSearchRequestBuilder().
 		WithTitle(readStringFromResource(d, "name")).
 		WithDescription(readStringFromResource(d, "description")).
 		WithDisplayColumns(readArrayFromResource(d, "display_columns")).
