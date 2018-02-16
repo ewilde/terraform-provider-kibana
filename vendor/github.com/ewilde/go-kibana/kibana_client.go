@@ -69,7 +69,7 @@ type createResourceResult553 struct {
 }
 
 var indexClientFromVersion = map[string]func(kibanaClient *KibanaClient) IndexPatternClient{
-	"6.0.0": func(kibanaClient *KibanaClient) IndexPatternClient {
+	DefaultKibanaVersion6: func(kibanaClient *KibanaClient) IndexPatternClient {
 		return &IndexPatternClient600{config: kibanaClient.Config, client: kibanaClient.client}
 	},
 	"5.5.3": func(kibanaClient *KibanaClient) IndexPatternClient {
@@ -77,8 +77,17 @@ var indexClientFromVersion = map[string]func(kibanaClient *KibanaClient) IndexPa
 	},
 }
 
-var seachClientFromVersion = map[string]func(kibanaClient *KibanaClient) SearchClient{
-	"6.0.0": func(kibanaClient *KibanaClient) SearchClient {
+func getIndexClientFromVersion(version string, kibanaClient *KibanaClient) IndexPatternClient {
+	indexClient, ok := indexClientFromVersion[version]
+	if !ok {
+		indexClient = indexClientFromVersion[DefaultKibanaVersion6]
+	}
+
+	return indexClient(kibanaClient)
+}
+
+var searchClientFromVersion = map[string]func(kibanaClient *KibanaClient) SearchClient{
+	DefaultKibanaVersion6: func(kibanaClient *KibanaClient) SearchClient {
 		return &searchClient600{config: kibanaClient.Config, client: kibanaClient.client}
 	},
 	"5.5.3": func(kibanaClient *KibanaClient) SearchClient {
@@ -86,8 +95,17 @@ var seachClientFromVersion = map[string]func(kibanaClient *KibanaClient) SearchC
 	},
 }
 
+func getSearchClientFromVersion(version string, kibanaClient *KibanaClient) SearchClient {
+	searchClient, ok := searchClientFromVersion[version]
+	if !ok {
+		searchClient = searchClientFromVersion[DefaultKibanaVersion6]
+	}
+
+	return searchClient(kibanaClient)
+}
+
 var visualizationClientFromVersion = map[string]func(kibanaClient *KibanaClient) VisualizationClient{
-	"6.0.0": func(kibanaClient *KibanaClient) VisualizationClient {
+	DefaultKibanaVersion6: func(kibanaClient *KibanaClient) VisualizationClient {
 		return &visualizationClient600{config: kibanaClient.Config, client: kibanaClient.client}
 	},
 	"5.5.3": func(kibanaClient *KibanaClient) VisualizationClient {
@@ -95,13 +113,31 @@ var visualizationClientFromVersion = map[string]func(kibanaClient *KibanaClient)
 	},
 }
 
+func getVisualizationClientFromVersion(version string, kibanaClient *KibanaClient) VisualizationClient {
+	visualizationClient, ok := visualizationClientFromVersion[version]
+	if !ok {
+		visualizationClient = visualizationClientFromVersion[DefaultKibanaVersion6]
+	}
+
+	return visualizationClient(kibanaClient)
+}
+
 var savedObjectsClientFromVersion = map[string]func(kibanaClient *KibanaClient) SavedObjectsClient{
-	"6.0.0": func(kibanaClient *KibanaClient) SavedObjectsClient {
+	DefaultKibanaVersion6: func(kibanaClient *KibanaClient) SavedObjectsClient {
 		return &savedObjectsClient600{config: kibanaClient.Config, client: kibanaClient.client}
 	},
 	"5.5.3": func(kibanaClient *KibanaClient) SavedObjectsClient {
 		return &savedObjectsClient553{config: kibanaClient.Config, client: kibanaClient.client}
 	},
+}
+
+func getSavedObjectsClientFromVersion(version string, kibanaClient *KibanaClient) SavedObjectsClient {
+	savedObjectsClient, ok := savedObjectsClientFromVersion[version]
+	if !ok {
+		savedObjectsClient = savedObjectsClientFromVersion[DefaultKibanaVersion6]
+	}
+
+	return savedObjectsClient(kibanaClient)
 }
 
 func NewDefaultConfig() *Config {
@@ -155,19 +191,19 @@ func (kibanaClient *KibanaClient) SetAuth(handler AuthenticationHandler) *Kibana
 }
 
 func (kibanaClient *KibanaClient) Search() SearchClient {
-	return seachClientFromVersion[kibanaClient.Config.KibanaVersion](kibanaClient)
+	return getSearchClientFromVersion(kibanaClient.Config.KibanaVersion, kibanaClient)
 }
 
 func (kibanaClient *KibanaClient) Visualization() VisualizationClient {
-	return visualizationClientFromVersion[kibanaClient.Config.KibanaVersion](kibanaClient)
+	return getVisualizationClientFromVersion(kibanaClient.Config.KibanaVersion, kibanaClient)
 }
 
 func (kibanaClient *KibanaClient) IndexPattern() IndexPatternClient {
-	return indexClientFromVersion[kibanaClient.Config.KibanaVersion](kibanaClient)
+	return getIndexClientFromVersion(kibanaClient.Config.KibanaVersion, kibanaClient)
 }
 
 func (kibanaClient *KibanaClient) SavedObjects() SavedObjectsClient {
-	return savedObjectsClientFromVersion[kibanaClient.Config.KibanaVersion](kibanaClient)
+	return getSavedObjectsClientFromVersion(kibanaClient.Config.KibanaVersion, kibanaClient)
 }
 
 func (config *Config) BuildFullPath(format string, a ...interface{}) string {

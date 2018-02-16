@@ -7,7 +7,7 @@ import (
 )
 
 var urlFromVersion = map[string]map[string]func(config *Config, name string, id string) string{
-	"6.0.0": {
+	DefaultKibanaVersion6: {
 		"create_index": func(config *Config, name string, id string) string {
 			return fmt.Sprintf("%s/api/saved_objects/index-pattern", config.KibanaBaseUri)
 		},
@@ -23,6 +23,15 @@ var urlFromVersion = map[string]map[string]func(config *Config, name string, id 
 			return fmt.Sprintf("%s/es_admin/.kibana/index-pattern/%s", config.KibanaBaseUri, name)
 		},
 	},
+}
+
+func getUrlFromVersion(version string, key string, config *Config, name string, id string) string {
+	urlMap, ok := urlFromVersion[version]
+	if !ok {
+		urlMap = urlFromVersion[DefaultKibanaVersion6]
+	}
+
+	return urlMap[key](config, name, id)
 }
 
 type IndexPatternClient interface {
@@ -100,7 +109,7 @@ func (api *IndexPatternClient600) SetDefault(indexPatternId string) error {
 }
 
 func (api *IndexPatternClient600) Create() (*IndexPatternCreateResult, error) {
-	uri := urlFromVersion[api.config.KibanaVersion]["create_index"](api.config, "logstash-*", "")
+	uri := getUrlFromVersion(api.config.KibanaVersion, "create_index", api.config, "logstash-*", "")
 	response, body, errs := api.client.Post(uri).
 		Set("kbn-version", api.config.KibanaVersion).
 		Send("{\"attributes\":{\"title\":\"logstash-*\",\"timeFieldName\":\"@timestamp\"}}").End()
@@ -153,7 +162,7 @@ func (api *IndexPatternClient600) RefreshFields(indexPatternId string) error {
 		},
 	}
 
-	uri := urlFromVersion[api.config.KibanaVersion]["refresh_index"](api.config, "logstash-*", indexPatternId)
+	uri := getUrlFromVersion(api.config.KibanaVersion, "refresh_index", api.config, "logstash-*", indexPatternId)
 	response, body, errs = api.client.Put(uri).
 		Set("kbn-version", api.config.KibanaVersion).
 		Send(indexPattern).
@@ -188,7 +197,7 @@ func (api *IndexPatternClient553) SetDefault(indexPatternId string) error {
 }
 
 func (api *IndexPatternClient553) Create() (*IndexPatternCreateResult, error) {
-	uri := urlFromVersion[api.config.KibanaVersion]["create_index"](api.config, "logstash-*", "")
+	uri := getUrlFromVersion(api.config.KibanaVersion, "create_index", api.config, "logstash-*", "")
 	response, body, errs := api.client.Post(uri).
 		Set("kbn-version", api.config.KibanaVersion).
 		Send("{\"title\":\"logstash-*\",\"timeFieldName\":\"@timestamp\"}").End()
@@ -251,7 +260,7 @@ func (api *IndexPatternClient553) RefreshFields(indexPatternId string) error {
 		Fields:        string(fieldJson),
 	}
 
-	uri := urlFromVersion[api.config.KibanaVersion]["refresh_index"](api.config, "logstash-*", indexPatternId)
+	uri := getUrlFromVersion(api.config.KibanaVersion, "refresh_index", api.config, "logstash-*", indexPatternId)
 	response, body, errs = api.client.Put(uri).
 		Set("kbn-version", api.config.KibanaVersion).
 		Send(indexPattern).
