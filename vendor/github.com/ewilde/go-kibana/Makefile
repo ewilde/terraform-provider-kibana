@@ -11,7 +11,7 @@ build: fmtcheck errcheck vet
 	go install
 
 test: docker-build fmtcheck
-	go test -v ./...
+	go test -v $(go list ./... | grep -v /vendor/)
 
 vet:
 	@echo "go vet ."
@@ -34,14 +34,6 @@ errcheck:
 vendor-status:
 	@govendor status
 
-test-compile:
-	@if [ "$(TEST)" = "./..." ]; then \
-		echo "ERROR: Set TEST to a specific package. For example,"; \
-		echo "  make test-compile TEST=./aws"; \
-		exit 1; \
-	fi
-	go test -c $(TEST) $(TESTARGS)
-
 docker-build:
 	@if [ "$(ELK_VERSION)" = "./..." ]; then \
 		echo "ERROR: Set ELK_VERSION to a specific version. For example,"; \
@@ -49,7 +41,7 @@ docker-build:
 		exit 1; \
 	fi
 	@if [ "$(KIBANA_TYPE)" = "KibanaTypeVanilla" ]; then \
-		cd docker/elasticsearch-$(MAIN_VERSION) && docker build . -t elastic-local:$(ELK_VERSION); \
+		cd docker/elasticsearch && docker build --build-arg ELK_VERSION=$(ELK_VERSION) --build-arg ELK_PACK=$(ELK_PACK) . -t elastic-local:$(ELK_VERSION); \
 	fi
 
 kibana-start: docker-build

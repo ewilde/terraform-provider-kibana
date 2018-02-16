@@ -10,12 +10,12 @@ import (
 	"strings"
 )
 
-var testCreate = map[kibana.KibanaType]string{
+var testSearchCreate = map[kibana.KibanaType]string{
 	kibana.KibanaTypeVanilla: testCreateSearchConfig,
 	kibana.KibanaTypeLogzio:  testCreateSearchLogzioConfig,
 }
 
-var testUpdate = map[kibana.KibanaType]string{
+var testSearchUpdate = map[kibana.KibanaType]string{
 	kibana.KibanaTypeVanilla: testUpdateSearchConfig,
 	kibana.KibanaTypeLogzio:  testUpdateSearchLogzioConfig,
 }
@@ -26,7 +26,7 @@ func TestAccKibanaSearchApi(t *testing.T) {
 		CheckDestroy: testAccCheckKibanaSearchDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testCreate[testConfig.KibanaType],
+				Config: testSearchCreate[testConfig.KibanaType],
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckKibanaSearchExists("kibana_search.china"),
 					resource.TestCheckResourceAttr("kibana_search.china", "name", "Chinese search"),
@@ -40,7 +40,7 @@ func TestAccKibanaSearchApi(t *testing.T) {
 				),
 			},
 			{
-				Config: testUpdate[testAccProvider.Meta().(*kibana.KibanaClient).Config.KibanaType],
+				Config: testSearchUpdate[testAccProvider.Meta().(*kibana.KibanaClient).Config.KibanaType],
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckKibanaSearchExists("kibana_search.china"),
 					resource.TestCheckResourceAttr("kibana_search.china", "name", "Chinese search - errors"),

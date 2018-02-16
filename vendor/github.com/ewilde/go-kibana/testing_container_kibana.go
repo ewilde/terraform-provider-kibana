@@ -10,9 +10,8 @@ import (
 )
 
 var imageNameFromVersion = map[string]string{
-	"6.0.0": "kibana-oss",
-	"5.5.3": "kibana",
-	"5.3.3": "kibana",
+	DefaultKibanaVersion6: "kibana-oss",
+	"5.5.3":               "kibana",
 }
 
 type kibanaContainer struct {
@@ -27,9 +26,14 @@ func newKibanaContainer(pool *dockertest.Pool, elasticSearch *elasticSearchConta
 		fmt.Sprintf("ELASTICSEARCH_URL=http://%s:9200", elasticSearch.Name),
 	}
 
+	imageName, ok := imageNameFromVersion[kibanaVersion]
+	if !ok {
+		imageName = "kibana-oss"
+	}
+
 	options := &dockertest.RunOptions{
 		Name:         "kibana",
-		Repository:   "docker.elastic.co/kibana/" + imageNameFromVersion[kibanaVersion],
+		Repository:   "docker.elastic.co/kibana/" + imageName,
 		Tag:          kibanaVersion,
 		Env:          envVars,
 		Links:        []string{elasticSearch.Name},

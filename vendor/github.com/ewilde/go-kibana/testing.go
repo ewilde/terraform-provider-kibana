@@ -18,14 +18,21 @@ type container interface {
 	Stop() error
 }
 
-const defaultElkVersion = "6.0.0"
-
 var authForContainerVersion = map[string]map[KibanaType]AuthenticationHandler{
 	"5.5.3": {
 		KibanaTypeVanilla: &BasicAuthenticationHandler{"elastic", "changeme"},
 		KibanaTypeLogzio:  createLogzAuthenticationHandler(),
 	},
-	"6.0.0": {KibanaTypeVanilla: &NoAuthenticationHandler{}},
+	DefaultKibanaVersion6: {KibanaTypeVanilla: &NoAuthenticationHandler{}},
+}
+
+func getAuthForContainerVersion(version string, kibanaType KibanaType) AuthenticationHandler {
+	handler, ok := authForContainerVersion[version]
+	if !ok {
+		handler = authForContainerVersion[DefaultKibanaVersion6]
+	}
+
+	return handler[kibanaType]
 }
 
 func RunTestsWithoutContainers(m *testing.M) {
@@ -34,9 +41,9 @@ func RunTestsWithoutContainers(m *testing.M) {
 }
 
 func RunTestsWithContainers(m *testing.M, client *KibanaClient) {
-	testContext, err := startKibana(GetEnvVarOrDefault("ELK_VERSION", defaultElkVersion), client)
+	testContext, err := startKibana(GetEnvVarOrDefault("ELK_VERSION", DefaultKibanaVersion6), client)
 	if err != nil {
-		log.Fatalf("Could start kibana: %v", err)
+		log.Fatalf("Could not start kibana: %v", err)
 	}
 
 	err = os.Setenv(EnvKibanaUri, testContext.KibanaUri)
@@ -60,7 +67,7 @@ func RunTestsWithContainers(m *testing.M, client *KibanaClient) {
 
 func DefaultTestKibanaClient() *KibanaClient {
 	kibanaClient := NewClient(NewDefaultConfig())
-	kibanaClient.SetAuth(authForContainerVersion[kibanaClient.Config.KibanaVersion][kibanaClient.Config.KibanaType])
+	kibanaClient.SetAuth(getAuthForContainerVersion(kibanaClient.Config.KibanaVersion, kibanaClient.Config.KibanaType))
 	return kibanaClient
 }
 
