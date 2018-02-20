@@ -179,9 +179,12 @@ In order to test the provider, you can simply run `make test`.
 $ make test
 ```
 
-In order to run the full suite of Acceptance tests, run `make testacc`.
+In order to run the full suite of Acceptance tests, run `make testacc ELK_VERSION=6.2.1 KIBANA_TYPE=KibanaTypeVanilla`.
 
 *Note:* Acceptance tests create real resources, and often cost money to run.
+
+## Debuging
+Set `KIBANA_DEBUG=1` to see http debug output
 
 ```sh
 $ make testacc

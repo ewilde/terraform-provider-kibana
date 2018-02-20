@@ -1,5 +1,5 @@
 builds:
-  - binary: terraform-provider-kibana_{{.Version}}
+  - binary: terraform-provider-kibana_v{{.Version}}
     goos:
       - darwin
       - linux

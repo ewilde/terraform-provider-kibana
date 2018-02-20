@@ -60,6 +60,53 @@ func createVisualization(search *kibana.Search) (*kibana.Visualization, error) {
 }
 ```
 
+### Displaying the filter with a saved search
+By default a saved search won't display the `filter` on the search UI.
+Use the `meta` structure to enable this, as shown below:
+
+![image](https://user-images.githubusercontent.com/329397/36351467-714aeac2-14a2-11e8-9f83-225844da579e.png)
+
+```go
+client := DefaultTestKibanaClient()
+
+	requestSearch, err := NewSearchSourceBuilder().
+		WithIndexId(client.Config.DefaultIndexId).
+		WithFilter(&SearchFilter{
+			Query: &SearchFilterQuery{
+				Match: map[string]*SearchFilterQueryAttributes{
+					"geo.src": {
+						Query: "CN",
+						Type:  "phrase",
+					},
+				},
+			},
+			Meta: &SearchFilterMetaData{
+				Index: client.Config.DefaultIndexId,
+				Negate: false,
+				Disabled: false,
+				Alias: "China",
+				Type: "phrase",
+				Key: "geo.src",
+				Value: "CN",
+				Params: &SearchFilterQueryAttributes {
+					Query: "CN",
+					Type: "phrase",
+				},
+			},
+		}).
+		Build()
+
+	request, err := NewSearchRequestBuilder().
+		WithTitle("Geography filter on china").
+		WithDisplayColumns([]string{"_source"}).
+		WithSortColumns([]string{"@timestamp"}, Descending).
+		WithSearchSource(requestSearch).
+		Build()
+
+	searchApi := client.Search()
+	response, err := searchApi.Create(request)
+```
+
 ### All Resources and Actions
 Complete examples can be found in the [examples folder](examples) or
 in the unit tests
