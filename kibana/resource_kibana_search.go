@@ -80,6 +80,60 @@ func resourceKibanaSearch() *schema.Resource {
 											},
 										},
 									},
+									"meta": {
+										Type:     schema.TypeSet,
+										Optional: true,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"index": {
+													Type:     schema.TypeString,
+													Required: true,
+												},
+												"negate": {
+													Type:     schema.TypeBool,
+													Optional: true,
+													Default:  false,
+												},
+												"disabled": {
+													Type:     schema.TypeBool,
+													Optional: true,
+													Default:  false,
+												},
+												"alias": {
+													Type:     schema.TypeString,
+													Optional: true,
+												},
+												"type": {
+													Type:     schema.TypeString,
+													Required: true,
+												},
+												"key": {
+													Type:     schema.TypeString,
+													Required: true,
+												},
+												"value": {
+													Type:     schema.TypeString,
+													Required: true,
+												},
+												"params": {
+													Type:     schema.TypeSet,
+													Required: true,
+													Elem: &schema.Resource{
+														Schema: map[string]*schema.Schema{
+															"query": {
+																Type:     schema.TypeString,
+																Required: true,
+															},
+															"type": {
+																Type:     schema.TypeString,
+																Required: true,
+															},
+														},
+													},
+												},
+											},
+										},
+									},
 								},
 							},
 							Optional: true,
@@ -137,7 +191,10 @@ func resourceKibanaSearchRead(d *schema.ResourceData, meta interface{}) error {
 
 	filters := make([]interface{}, 0, len(responseSearch.Filter))
 	for _, x := range responseSearch.Filter {
-		filters = append(filters, map[string]interface{}{"match": flattenMatches(x.Query)})
+		filters = append(filters, map[string]interface{}{
+			"match": flattenMatches(x.Query),
+			"meta":  flattenMeta(x.Meta),
+		})
 	}
 
 	search := []interface{}{map[string]interface{}{
@@ -199,18 +256,46 @@ func createKibanaSearchCreateRequestFromResourceData(d *schema.ResourceData) (*k
 			searchBuilder.WithIndexId(searchMap["index"].(string))
 			filters := searchMap["filters"].(interface{})
 
-			for _, x := range filters.([]interface{}) {
-				matchSet := x.(map[string]interface{})["match"].(*schema.Set).List()
+			for _, filter := range filters.([]interface{}) {
+				matchSet := filter.(map[string]interface{})["match"].(*schema.Set).List()
 				match := matchSet[0].(map[string]interface{})
-				searchBuilder.WithFilter(&kibana.SearchFilter{
-					Query: &kibana.SearchFilterQuery{
-						Match: map[string]*kibana.SearchFilterQueryAttributes{
-							match["field_name"].(string): {
-								Query: match["query"].(string),
-								Type:  match["type"].(string),
-							},
+
+				var query *kibana.SearchFilterQuery
+				var meta *kibana.SearchFilterMetaData
+
+				query = &kibana.SearchFilterQuery{
+					Match: map[string]*kibana.SearchFilterQueryAttributes{
+						match["field_name"].(string): {
+							Query: match["query"].(string),
+							Type:  match["type"].(string),
 						},
 					},
+				}
+
+				if metaList, ok := filter.(map[string]interface{})["meta"]; ok {
+					metaListSet := metaList.(*schema.Set).List()
+					if len(metaListSet) > 0 {
+						metaMap := metaListSet[0].(map[string]interface{})
+						paramsMap := metaMap["params"].(*schema.Set).List()[0].(map[string]interface{})
+						meta = &kibana.SearchFilterMetaData{
+							Index:    metaMap["index"].(string),
+							Negate:   boolOrDefault(metaMap["negate"], false),
+							Disabled: boolOrDefault(metaMap["disabled"], false),
+							Alias:    stringOrDefault(metaMap["alias"], ""),
+							Type:     metaMap["type"].(string),
+							Key:      metaMap["key"].(string),
+							Value:    metaMap["value"].(string),
+							Params: &kibana.SearchFilterQueryAttributes{
+								Query: paramsMap["query"].(string),
+								Type:  paramsMap["type"].(string),
+							},
+						}
+					}
+				}
+
+				searchBuilder.WithFilter(&kibana.SearchFilter{
+					Query: query,
+					Meta:  meta,
 				})
 			}
 		}
@@ -239,6 +324,41 @@ func flattenMatches(searchFilterQuery *kibana.SearchFilterQuery) *schema.Set {
 	return s
 }
 
+func flattenMeta(searchFilterMetaData *kibana.SearchFilterMetaData) *schema.Set {
+
+	s := schema.NewSet(metaHash, []interface{}{})
+	m := map[string]interface{}{}
+
+	if searchFilterMetaData == nil {
+		return s
+	}
+
+	m["index"] = searchFilterMetaData.Index
+	m["negate"] = searchFilterMetaData.Negate
+	m["disabled"] = searchFilterMetaData.Disabled
+	m["alias"] = searchFilterMetaData.Alias
+	m["type"] = searchFilterMetaData.Type
+	m["key"] = searchFilterMetaData.Key
+	m["value"] = searchFilterMetaData.Value
+	m["params"] = flattenMetaParams(searchFilterMetaData.Params)
+	s.Add(m)
+
+	return s
+}
+
+func flattenMetaParams(searchFilterMetaData *kibana.SearchFilterQueryAttributes) *schema.Set {
+
+	s := schema.NewSet(matchParamsHash, []interface{}{})
+
+	m := map[string]interface{}{}
+	m["type"] = searchFilterMetaData.Type
+	m["query"] = searchFilterMetaData.Query
+
+	s.Add(m)
+
+	return s
+}
+
 func flattenMatch(field string, value *kibana.SearchFilterQueryAttributes) map[string]interface{} {
 	m := map[string]interface{}{}
 	m["field_name"] = field
@@ -254,5 +374,26 @@ func matchHash(v interface{}) int {
 	buf.WriteString(fmt.Sprintf("%s-", m["field_name"].(string)))
 	buf.WriteString(fmt.Sprintf("%s", m["query"].(string)))
 	buf.WriteString(fmt.Sprintf("%s", m["type"].(string)))
+	return hashcode.String(buf.String())
+}
+
+func matchParamsHash(v interface{}) int {
+	var buf bytes.Buffer
+	m := v.(map[string]interface{})
+	buf.WriteString(fmt.Sprintf("%s", m["query"].(string)))
+	buf.WriteString(fmt.Sprintf("%s", m["type"].(string)))
+	return hashcode.String(buf.String())
+}
+
+func metaHash(v interface{}) int {
+	var buf bytes.Buffer
+	m := v.(map[string]interface{})
+	buf.WriteString(fmt.Sprintf("%s-", m["index"].(string)))
+	buf.WriteString(fmt.Sprintf("%v", m["negate"].(bool)))
+	buf.WriteString(fmt.Sprintf("%v", m["disabled"].(bool)))
+	buf.WriteString(fmt.Sprintf("%s", m["alias"].(string)))
+	buf.WriteString(fmt.Sprintf("%s", m["type"].(string)))
+	buf.WriteString(fmt.Sprintf("%s", m["key"].(string)))
+	buf.WriteString(fmt.Sprintf("%s", m["value"].(string)))
 	return hashcode.String(buf.String())
 }

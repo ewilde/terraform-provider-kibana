@@ -81,11 +81,23 @@ type SearchQuery struct {
 }
 
 type SearchFilter struct {
-	Query *SearchFilterQuery `json:"query"`
+	Query *SearchFilterQuery    `json:"query"`
+	Meta  *SearchFilterMetaData `json:"meta,omitempty"`
 }
 
 type SearchFilterQuery struct {
 	Match map[string]*SearchFilterQueryAttributes `json:"match"`
+}
+
+type SearchFilterMetaData struct {
+	Index    string                       `json:"index"`
+	Negate   bool                         `json:"negate"`
+	Disabled bool                         `json:"disabled"`
+	Alias    string                       `json:"alias"`
+	Type     string                       `json:"type"`
+	Key      string                       `json:"key"`
+	Value    string                       `json:"value"`
+	Params   *SearchFilterQueryAttributes `json:"params"`
 }
 
 type SearchFilterQueryAttributes struct {

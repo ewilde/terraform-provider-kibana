@@ -35,3 +35,70 @@ GET /api/saved_objects/?type=search&per_page=100&page=1&search_fields=title%5E3&
   ]
 }
 ```
+
+## Saved search
+```json
+{
+  "index": "55590620-134c-11e8-8d71-2547028c7370",
+  "highlightAll": true,
+  "version": true,
+  "query": {
+    "query": "",
+    "language": "lucene"
+  },
+  "filter": [
+    {
+      "meta": {
+        "index": "55590620-134c-11e8-8d71-2547028c7370",
+        "negate": false,
+        "disabled": false,
+        "alias": null,
+        "type": "phrase",
+        "key": "geo.src",
+        "value": "CN",
+        "params": {
+          "query": "CN",
+          "type": "phrase"
+        }
+      },
+      "query": {
+        "match": {
+          "geo.src": {
+            "query": "CN",
+            "type": "phrase"
+          }
+        }
+      },
+      "$state": {
+        "store": "appState"
+      }
+    },
+    {
+      "meta": {
+        "index": "55590620-134c-11e8-8d71-2547028c7370",
+        "negate": false,
+        "disabled": false,
+        "alias": null,
+        "type": "phrase",
+        "key": "@tags",
+        "value": "error",
+        "params": {
+          "query": "error",
+          "type": "phrase"
+        }
+      },
+      "query": {
+        "match": {
+          "@tags": {
+            "query": "error",
+            "type": "phrase"
+          }
+        }
+      },
+      "$state": {
+        "store": "appState"
+      }
+    }
+  ]
+}
+```

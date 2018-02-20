@@ -83,6 +83,20 @@ func envDefaultFuncWithDefault(key string, defaultValue string) schema.SchemaDef
 	}
 }
 
+func GetEnvVarOrDefaultBool(key string, defaultValue bool) bool {
+	result := os.Getenv(key)
+
+	if result == "" {
+		return defaultValue
+	}
+
+	if result == "true" || result == "1" {
+		return true
+	} else {
+		return false
+	}
+}
+
 func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 	config := &kibana.Config{
 		ElasticSearchPath: d.Get("elastic_search_path").(string),
@@ -93,7 +107,7 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 
 	client := kibana.NewClient(config)
 	client.SetAuth(authForContainerVersion[config.KibanaType](config, d))
-	client.Config.Debug = false
+	client.Config.Debug = GetEnvVarOrDefaultBool("KIBANA_DEBUG", false)
 	return client, nil
 }
 

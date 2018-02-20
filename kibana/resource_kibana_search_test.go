@@ -15,6 +15,11 @@ var testSearchCreate = map[kibana.KibanaType]string{
 	kibana.KibanaTypeLogzio:  testCreateSearchLogzioConfig,
 }
 
+var testSearchCreateMeta = map[kibana.KibanaType]string{
+	kibana.KibanaTypeVanilla: testCreateSearchConfigMeta,
+	kibana.KibanaTypeLogzio:  testCreateSearchLogzioConfigMeta,
+}
+
 var testSearchUpdate = map[kibana.KibanaType]string{
 	kibana.KibanaTypeVanilla: testUpdateSearchConfig,
 	kibana.KibanaTypeLogzio:  testUpdateSearchLogzioConfig,
@@ -48,6 +53,29 @@ func TestAccKibanaSearchApi(t *testing.T) {
 					CheckResourceAttrSet("kibana_search.china", "search.#.filters.1.match.#.field_name", "@tags"),
 					CheckResourceAttrSet("kibana_search.china", "search.#.filters.1.match.#.query", "error"),
 					CheckResourceAttrSet("kibana_search.china", "search.#.filters.1.match.#.type", "phrase"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccKibanaSearchApi_WithMetaFilter(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckKibanaSearchDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testSearchCreateMeta[testConfig.KibanaType],
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckKibanaSearchExists("kibana_search.china"),
+					resource.TestCheckResourceAttr("kibana_search.china", "name", "Chinese search with filter meta"),
+					CheckResourceAttrSet("kibana_search.china", "search.#.filters.0.meta.#.negate", "false"),
+					CheckResourceAttrSet("kibana_search.china", "search.#.filters.0.meta.#.disabled", "false"),
+					CheckResourceAttrSet("kibana_search.china", "search.#.filters.0.meta.#.alias", "China"),
+					CheckResourceAttrSet("kibana_search.china", "search.#.filters.0.meta.#.type", "phrase"),
+					CheckResourceAttrSet("kibana_search.china", "search.#.filters.0.meta.#.key", "geo.src"),
+					CheckResourceAttrSet("kibana_search.china", "search.#.filters.0.meta.#.params.#.query", "CN"),
+					CheckResourceAttrSet("kibana_search.china", "search.#.filters.0.meta.#.params.#.type", "phrase"),
 				),
 			},
 		},
@@ -128,6 +156,79 @@ data "kibana_index" "main" {
 	filter = {
 		name = "title"
 		values = ["logstash-*"]
+	}
+}
+`
+
+const testCreateSearchConfigMeta = `
+resource "kibana_search" "china" {
+	name 	        = "Chinese search with filter meta"
+	description     = "Chinese search results with filter meta"
+	display_columns = ["_source"]
+	sort_by_columns = ["@timestamp"]
+	search = {
+		index   = "${data.kibana_index.main.id}"
+		filters = [
+			{
+				match = {
+					field_name = "geo.src"
+					query      = "CN"
+					type       = "phrase"
+				},
+
+				meta = {
+					index = "${data.kibana_index.main.id}"
+					alias = "China"
+					type  = "phrase"
+                    key   = "geo.src"
+					value = "CN"
+ 					params = {
+						query = "CN"
+						type  = "phrase"
+					}
+				}
+			}
+		]
+	}
+}
+
+data "kibana_index" "main" {
+	filter = {
+		name = "title"
+		values = ["logstash-*"]
+	}
+}
+`
+
+const testCreateSearchLogzioConfigMeta = `
+resource "kibana_search" "china" {
+	name 	        = "Chinese search with filter meta"
+	description     = "Chinese search results with filter meta"
+	display_columns = ["_source"]
+	sort_by_columns = ["@timestamp"]
+	search = {
+		index   = "[logzioCustomerIndex]YYMMDD"
+		filters = [
+			{
+				match = {
+					field_name = "geo.src"
+					query      = "CN"
+					type       = "phrase"
+				},
+
+				meta = {
+					index = "[logzioCustomerIndex]YYMMDD"
+					alias = "China"
+					type  = "phrase"
+                    key   = "geo.src"
+					value = "CN"
+ 					params = {
+						query = "CN"
+						type  = "phrase"
+					}
+				}
+			}
+		]
 	}
 }
 `

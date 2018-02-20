@@ -62,6 +62,7 @@ func newKibanaContainer(pool *dockertest.Pool, elasticSearch *elasticSearchConta
 		indexPatternClient := client.IndexPattern()
 		indexPatternCreateResult, err = indexPatternClient.Create()
 		if err != nil {
+			log.Printf("Could not create index pattern:%s\n", err)
 			return err
 		}
 
@@ -83,7 +84,7 @@ func newKibanaContainer(pool *dockertest.Pool, elasticSearch *elasticSearchConta
 	}
 
 	name := getContainerName(resource)
-	log.Printf("Kibana %s (%v): up", kibanaVersion, name)
+	log.Printf("Kibana %s (%v): up\n", kibanaVersion, name)
 
 	return &kibanaContainer{
 		Name:     name,
