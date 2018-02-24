@@ -11,13 +11,13 @@ import (
 )
 
 var testDashboardCreate = map[kibana.KibanaType]string{
-	kibana.KibanaTypeVanilla: fmt.Sprintf(testCreateDashboardConfig, "${data.kibana_index.main.id}"),
-	kibana.KibanaTypeLogzio:  fmt.Sprintf(testCreateDashboardConfig, "[logzioCustomerIndex]YYMMDD"),
+	kibana.KibanaTypeVanilla: fmt.Sprintf(testCreateDashboardConfig, "${data.kibana_index.main.id}", dataKibanaIndex),
+	kibana.KibanaTypeLogzio:  fmt.Sprintf(testCreateDashboardConfig, "[logzioCustomerIndex]YYMMDD", ""),
 }
 
 var testDashboardUpdate = map[kibana.KibanaType]string{
-	kibana.KibanaTypeVanilla: fmt.Sprintf(testUpdateDashboardConfig, "${data.kibana_index.main.id}"),
-	kibana.KibanaTypeLogzio:  fmt.Sprintf(testCreateDashboardConfig, "[logzioCustomerIndex]YYMMDD"),
+	kibana.KibanaTypeVanilla: fmt.Sprintf(testUpdateDashboardConfig, "${data.kibana_index.main.id}", dataKibanaIndex),
+	kibana.KibanaTypeLogzio:  fmt.Sprintf(testUpdateDashboardConfig, "[logzioCustomerIndex]YYMMDD", ""),
 }
 
 func TestAccKibanaDashboardApi(t *testing.T) {
@@ -225,12 +225,7 @@ resource "kibana_search" "china" {
 	}
 }
 
-data "kibana_index" "main" {
-	filter = {
-		name = "title"
-		values = ["logstash-*"]
-	}
-}
+%s
 `
 const testUpdateDashboardConfig = `
 resource "kibana_dashboard" "china_dash" {
@@ -362,10 +357,11 @@ resource "kibana_search" "china" {
 	}
 }
 
-data "kibana_index" "main" {
+%s
+`
+const dataKibanaIndex = `data "kibana_index" "main" {
 	filter = {
 		name = "title"
 		values = ["logstash-*"]
 	}
-}
-`
+}`
