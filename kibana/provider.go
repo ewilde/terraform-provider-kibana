@@ -63,6 +63,7 @@ func Provider() terraform.ResourceProvider {
 		ResourcesMap: map[string]*schema.Resource{
 			"kibana_search":        resourceKibanaSearch(),
 			"kibana_visualization": resourceKibanaVisualization(),
+			"kibana_dashboard":     resourceKibanaDashboard(),
 		},
 
 		ConfigureFunc: providerConfigure,

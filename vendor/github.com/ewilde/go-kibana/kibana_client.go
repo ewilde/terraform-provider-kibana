@@ -122,6 +122,24 @@ func getVisualizationClientFromVersion(version string, kibanaClient *KibanaClien
 	return visualizationClient(kibanaClient)
 }
 
+var dashboardClientFromVersion = map[string]func(kibanaClient *KibanaClient) DashboardClient{
+	DefaultKibanaVersion6: func(kibanaClient *KibanaClient) DashboardClient {
+		return &dashboardClient600{config: kibanaClient.Config, client: kibanaClient.client}
+	},
+	"5.5.3": func(kibanaClient *KibanaClient) DashboardClient {
+		return &dashboardClient553{config: kibanaClient.Config, client: kibanaClient.client}
+	},
+}
+
+func getDashboardClientFromVersion(version string, kibanaClient *KibanaClient) DashboardClient {
+	dashboardClient, ok := dashboardClientFromVersion[version]
+	if !ok {
+		dashboardClient = dashboardClientFromVersion[DefaultKibanaVersion6]
+	}
+
+	return dashboardClient(kibanaClient)
+}
+
 var savedObjectsClientFromVersion = map[string]func(kibanaClient *KibanaClient) SavedObjectsClient{
 	DefaultKibanaVersion6: func(kibanaClient *KibanaClient) SavedObjectsClient {
 		return &savedObjectsClient600{config: kibanaClient.Config, client: kibanaClient.client}
@@ -196,6 +214,10 @@ func (kibanaClient *KibanaClient) Search() SearchClient {
 
 func (kibanaClient *KibanaClient) Visualization() VisualizationClient {
 	return getVisualizationClientFromVersion(kibanaClient.Config.KibanaVersion, kibanaClient)
+}
+
+func (kibanaClient *KibanaClient) Dashboard() DashboardClient {
+	return getDashboardClientFromVersion(kibanaClient.Config.KibanaVersion, kibanaClient)
 }
 
 func (kibanaClient *KibanaClient) IndexPattern() IndexPatternClient {
