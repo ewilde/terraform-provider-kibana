@@ -44,7 +44,7 @@ $ make build
 
 Using the provider
 ----------------------
-## Example creating saved search resources
+## Example creating saved search, visualization and dashboard resources
 ```hcl
 provider "kibana" {
 }
@@ -153,6 +153,41 @@ resource "kibana_visualization" "china_viz" {
     }
   ]
 }
+EOF
+}
+
+resource "kibana_dashboard" "china_dash" {
+	name = "Chinese dashboard"
+	description = "Chinese dashboard description"
+	panels_json = <<EOF
+[
+  {
+    "gridData": {
+      "w": 6,
+      "h": 3,
+      "x": 0,
+      "y": 0,
+      "i": "1"
+    },
+	"version": "6.2.1",
+    "panelIndex": "1",
+    "type": "visualization",
+    "id": "${kibana_visualization.china_viz.id}"
+  },
+  {
+    "gridData": {
+      "w": 6,
+      "h": 3,
+      "x": 6,
+      "y": 0,
+      "i": "2"
+    },
+	"version": "6.2.1",
+    "panelIndex": "2",
+    "type": "search",
+    "id": "${kibana_search.china.id}"
+  }
+]
 EOF
 }
 ```
