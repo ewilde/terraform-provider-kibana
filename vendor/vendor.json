@@ -399,10 +399,10 @@
 			"revisionTime": "2017-01-27T09:51:30Z"
 		},
 		{
-			"checksumSHA1": "kd3WCXGa6j5C/7c2/BFOyOBmaBo=",
+			"checksumSHA1": "hgJ5zqtr/cQUGudfvaOBA6qxqL8=",
 			"path": "github.com/ewilde/go-kibana",
-			"revision": "4eb27eebd663aa560819d18b695219a91a40dcad",
-			"revisionTime": "2018-02-23T08:14:11Z"
+			"revision": "f4cf6dc327c302320176d5abbe1d743209d40289",
+			"revisionTime": "2018-03-01T22:06:48Z"
 		},
 		{
 			"checksumSHA1": "2iG1OyYDGax71qsun0zBSdcFt4E=",

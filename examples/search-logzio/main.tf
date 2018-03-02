@@ -6,6 +6,7 @@ provider "kibana" {
     kibana_username     = "${var.kibana_username}"
     kibana_password     = "${var.kibana_password}"
     logzio_client_id    = "${var.logzio_client_id}"
+    logzio_account_id   = "${var.logzio_account_id}"
 }
 
 resource "kibana_search" "china" {

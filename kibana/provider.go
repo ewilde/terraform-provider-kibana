@@ -54,6 +54,12 @@ func Provider() terraform.ResourceProvider {
 				DefaultFunc: envDefaultFuncWithDefault(kibana.EnvLogzClientId, ""),
 				Description: "The logz.io client id used when connecting to logz.io",
 			},
+			"logzio_account_id": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				DefaultFunc: envDefaultFuncWithDefault("LOGZIO_ACCOUNT_ID", ""),
+				Description: "The logz.io account id used when connecting to logz.io",
+			},
 		},
 
 		DataSourcesMap: map[string]*schema.Resource{
@@ -109,6 +115,11 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 	client := kibana.NewClient(config)
 	client.SetAuth(authForContainerVersion[config.KibanaType](config, d))
 	client.Config.Debug = GetEnvVarOrDefaultBool("KIBANA_DEBUG", false)
+
+	if accountId, ok := d.GetOk("logzio_account_id"); ok && len(accountId.(string)) > 0 {
+		client.ChangeAccount(accountId.(string))
+	}
+
 	return client, nil
 }
 

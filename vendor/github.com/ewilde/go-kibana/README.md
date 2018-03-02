@@ -110,3 +110,32 @@ client := DefaultTestKibanaClient()
 ### All Resources and Actions
 Complete examples can be found in the [examples folder](examples) or
 in the unit tests
+
+
+## Developing
+### Running test
+**Logzio - running tests**
+
+example:
+```
+env ELK_VERSION=5.5.3 KIBANA_TYPE=KibanaTypeLogzio \
+    KIBANA_URI="https://app-eu.logz.io" \
+    ELASTIC_SEARCH_PATH="/kibana/elasticsearch/logzioCustomerKibanaIndex" \
+    LOGZ_CLIENT_ID=zzedfwe3424fsdf KIBANA_USERNAME=foo@acme.com \
+    LOGZ_IO_ACCOUNT_ID_1=123233 \
+    LOGZ_IO_ACCOUNT_ID_2=232333
+    KIBANA_PASSWORD=mypwd make fmt test
+```
+
+| Environment variables           | Description                             |
+|:----------------|:----------------------------------------|
+| ELK_VERSION| Version of ELK to run while test against logzio |
+| KIBANA_TYPE| Always  KibanaTypeLogzio|
+| KIBANA_URI| Your logz.io base uri i.e. https://app-eu.logz.io |
+| ELASTIC_SEARCH_PATH| Always /kibana/elasticsearch/logzioCustomerKibanaIndex for logz.io|
+| LOGZ_CLIENT_ID| Obtained for the POST data call to https://logzio.auth0.com/oauth/ro. Use chrome developer tools when you login to logz.io to obtain this. |
+| KIBANA_USERNAME| Your logz.io username|
+| KIBANA_PASSWORD| Your logz.io password|
+| LOGZ_IO_ACCOUNT_ID_1| *Optional* Your primary logz.io account id, you can obtain this from the result or GET https://app-eu.logz.io/session. If not given will not run some tests to do with switching between multiple logz.io accounts|
+| LOGZ_IO_ACCOUNT_ID_2| *Optional* A secondary primary logz.io account id, you can obtain this from the result or GET https://app-eu.logz.io/session after you switch accounts in the logz.io UI. If not given will not run some tests to do with switching between multiple logz.io accounts|
+| KIBANA_DEBUG| *Optional* If set to any value i.e. 1 will print http request and response debug information|
