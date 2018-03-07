@@ -19,8 +19,8 @@ var testSearchCreate = map[kibana.KibanaType]string{
 }
 
 var testSearchCreateMeta = map[kibana.KibanaType]string{
-	kibana.KibanaTypeVanilla: fmt.Sprintf(testCreateSearchConfigMeta, kibanaIndexVanilla, kibanaIndexVanilla, dataKibanaIndex),
-	kibana.KibanaTypeLogzio:  fmt.Sprintf(testCreateSearchConfigMeta, kibanaIndexLogzio, kibanaIndexLogzio, ""),
+	kibana.KibanaTypeVanilla: fmt.Sprintf(testCreateSearchConfigMeta, kibanaIndexVanilla, kibanaIndexVanilla, dataKibanaIndex, dataKibanaIndex),
+	kibana.KibanaTypeLogzio:  fmt.Sprintf(testCreateSearchConfigMeta, kibanaIndexLogzio, kibanaIndexLogzio, "", ""),
 }
 
 var testSearchCreateQuery = map[kibana.KibanaType]string{
@@ -207,6 +207,16 @@ resource "kibana_search" "china" {
 						query = "CN"
 						type  = "phrase"
 					}
+				}
+			},
+			{
+				exists =  "geoip.region_name",
+
+				meta = {
+					index = "%s"
+					type  = "exists"
+                    key   = "geoip.region_name"
+					value = "exists"
 				}
 			}
 		]

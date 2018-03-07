@@ -125,7 +125,7 @@ func resourceKibanaSearch() *schema.Resource {
 												},
 												"params": {
 													Type:     schema.TypeSet,
-													Required: true,
+													Optional: true,
 													Elem: &schema.Resource{
 														Schema: map[string]*schema.Schema{
 															"query": {
@@ -273,25 +273,36 @@ func createKibanaSearchCreateRequestFromResourceData(d *schema.ResourceData, sea
 
 			for _, filter := range filters.([]interface{}) {
 				matchSet := filter.(map[string]interface{})["match"].(*schema.Set).List()
-				match := matchSet[0].(map[string]interface{})
-
 				var query *kibana.SearchFilterQuery
 				var meta *kibana.SearchFilterMetaData
+				var existsFilter *kibana.SearchFilterExists
 
-				query = &kibana.SearchFilterQuery{
-					Match: map[string]*kibana.SearchFilterQueryAttributes{
-						match["field_name"].(string): {
-							Query: match["query"].(string),
-							Type:  match["type"].(string),
+				if len(matchSet) > 0 {
+					match := matchSet[0].(map[string]interface{})
+					query = &kibana.SearchFilterQuery{
+						Match: map[string]*kibana.SearchFilterQueryAttributes{
+							match["field_name"].(string): {
+								Query: match["query"].(string),
+								Type:  match["type"].(string),
+							},
 						},
-					},
+					}
 				}
 
 				if metaList, ok := filter.(map[string]interface{})["meta"]; ok {
 					metaListSet := metaList.(*schema.Set).List()
+					var params *kibana.SearchFilterQueryAttributes
 					if len(metaListSet) > 0 {
 						metaMap := metaListSet[0].(map[string]interface{})
-						paramsMap := metaMap["params"].(*schema.Set).List()[0].(map[string]interface{})
+						paramsListSet := metaMap["params"].(*schema.Set).List()
+						if len(paramsListSet) > 0 {
+							paramsMap := paramsListSet[0].(map[string]interface{})
+							params = &kibana.SearchFilterQueryAttributes{
+								Query: paramsMap["query"].(string),
+								Type:  paramsMap["type"].(string),
+							}
+						}
+
 						meta = &kibana.SearchFilterMetaData{
 							Index:    metaMap["index"].(string),
 							Negate:   boolOrDefault(metaMap["negate"], false),
@@ -300,15 +311,11 @@ func createKibanaSearchCreateRequestFromResourceData(d *schema.ResourceData, sea
 							Type:     metaMap["type"].(string),
 							Key:      metaMap["key"].(string),
 							Value:    metaMap["value"].(string),
-							Params: &kibana.SearchFilterQueryAttributes{
-								Query: paramsMap["query"].(string),
-								Type:  paramsMap["type"].(string),
-							},
+							Params:   params,
 						}
 					}
 				}
 
-				var existsFilter *kibana.SearchFilterExists
 				stringApplyIfExists(filter.(map[string]interface{})["exists"], func(value string) {
 					existsFilter = &kibana.SearchFilterExists{
 						Field: value,
@@ -339,8 +346,11 @@ func createKibanaSearchCreateRequestFromResourceData(d *schema.ResourceData, sea
 }
 
 func flattenMatches(searchFilterQuery *kibana.SearchFilterQuery) *schema.Set {
-
 	s := schema.NewSet(matchHash, []interface{}{})
+	if searchFilterQuery == nil {
+		return s
+	}
+
 	for k, v := range searchFilterQuery.Match {
 		s.Add(flattenMatch(k, v))
 	}
@@ -370,8 +380,11 @@ func flattenMeta(searchFilterMetaData *kibana.SearchFilterMetaData) *schema.Set 
 }
 
 func flattenMetaParams(searchFilterMetaData *kibana.SearchFilterQueryAttributes) *schema.Set {
-
 	s := schema.NewSet(matchParamsHash, []interface{}{})
+
+	if searchFilterMetaData == nil {
+		return s
+	}
 
 	m := map[string]interface{}{}
 	m["type"] = searchFilterMetaData.Type
