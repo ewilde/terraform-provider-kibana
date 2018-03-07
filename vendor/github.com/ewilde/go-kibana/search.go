@@ -14,11 +14,16 @@ const (
 
 type SortOrder int
 
+type SearchSourceBuilderFactory interface {
+	NewSearchSource() SearchSourceBuilder
+}
+
 type SearchClient interface {
 	Create(request *CreateSearchRequest) (*Search, error)
 	Update(id string, request *UpdateSearchRequest) (*Search, error)
 	GetById(id string) (*Search, error)
 	Delete(id string) error
+	NewSearchSource() SearchSourceBuilder
 }
 
 type searchClient600 struct {
@@ -71,22 +76,36 @@ type SearchSource struct {
 	IndexId      string          `json:"index"`
 	HighlightAll bool            `json:"highlightAll"`
 	Version      bool            `json:"version"`
-	Query        *SearchQuery    `json:"query,omitempty"`
+	Query        interface{}     `json:"query,omitempty"`
 	Filter       []*SearchFilter `json:"filter"`
 }
 
-type SearchQuery struct {
+type SearchQuery600 struct {
 	Query    string `json:"query"`
 	Language string `json:"language"`
 }
 
+type SearchQuery553 struct {
+	QueryString *searchQueryString `json:"query_string"`
+}
+
+type searchQueryString struct {
+	Query   string `json:"query"`
+	Analyze bool   `json:"analyze_wildcard"`
+}
+
 type SearchFilter struct {
-	Query *SearchFilterQuery    `json:"query"`
-	Meta  *SearchFilterMetaData `json:"meta,omitempty"`
+	Query  *SearchFilterQuery    `json:"query"`
+	Exists *SearchFilterExists   `json:"exists"`
+	Meta   *SearchFilterMetaData `json:"meta,omitempty"`
 }
 
 type SearchFilterQuery struct {
 	Match map[string]*SearchFilterQueryAttributes `json:"match"`
+}
+
+type SearchFilterExists struct {
+	Field string `json:"field"`
 }
 
 type SearchFilterMetaData struct {
@@ -113,11 +132,29 @@ type SearchRequestBuilder struct {
 	searchSource   *SearchSource
 }
 
-type SearchSourceBuilder struct {
+type SearchSourceBuilder interface {
+	WithIndexId(indexId string) SearchSourceBuilder
+	WithQuery(query string) SearchSourceBuilder
+	WithFilter(filter *SearchFilter) SearchSourceBuilder
+	Build() (*SearchSource, error)
+}
+
+type searchSourceBuilder600 struct {
 	indexId      string
 	highlightAll bool
-	query        *SearchQuery
+	query        *SearchQuery600
 	filters      []*SearchFilter
+}
+
+type searchSourceBuilder553 struct {
+	indexId      string
+	highlightAll bool
+	query        *SearchQuery553
+	filters      []*SearchFilter
+}
+
+func (api *searchClient600) NewSearchSource() SearchSourceBuilder {
+	return &searchSourceBuilder600{filters: []*SearchFilter{}}
 }
 
 func (api *searchClient600) Create(request *CreateSearchRequest) (*Search, error) {
@@ -202,6 +239,10 @@ func (api *searchClient600) Delete(id string) error {
 	}
 
 	return nil
+}
+
+func (api *searchClient553) NewSearchSource() SearchSourceBuilder {
+	return &searchSourceBuilder553{filters: []*SearchFilter{}}
 }
 
 func (api *searchClient553) Create(request *CreateSearchRequest) (*Search, error) {
@@ -308,26 +349,56 @@ func (api *searchClient553) Delete(id string) error {
 	return nil
 }
 
-func NewSearchSourceBuilder() *SearchSourceBuilder {
-	return &SearchSourceBuilder{filters: []*SearchFilter{}}
-}
-
-func (builder *SearchSourceBuilder) WithIndexId(indexId string) *SearchSourceBuilder {
+func (builder *searchSourceBuilder600) WithIndexId(indexId string) SearchSourceBuilder {
 	builder.indexId = indexId
 	return builder
 }
 
-func (builder *SearchSourceBuilder) WithQuery(query *SearchQuery) *SearchSourceBuilder {
-	builder.query = query
+func (builder *searchSourceBuilder600) WithQuery(query string) SearchSourceBuilder {
+	builder.query = &SearchQuery600{Query: query, Language: "lucene"}
 	return builder
 }
 
-func (builder *SearchSourceBuilder) WithFilter(filter *SearchFilter) *SearchSourceBuilder {
+func (builder *searchSourceBuilder600) WithFilter(filter *SearchFilter) SearchSourceBuilder {
 	builder.filters = append(builder.filters, filter)
 	return builder
 }
 
-func (builder *SearchSourceBuilder) Build() (*SearchSource, error) {
+func (builder *searchSourceBuilder600) Build() (*SearchSource, error) {
+	if builder.indexId == "" {
+		return nil, errors.New("Index id is required to create a discover search source")
+	}
+
+	return &SearchSource{
+		IndexId:      builder.indexId,
+		HighlightAll: builder.highlightAll,
+		Version:      true,
+		Query:        builder.query,
+		Filter:       builder.filters,
+	}, nil
+}
+
+func (builder *searchSourceBuilder553) WithIndexId(indexId string) SearchSourceBuilder {
+	builder.indexId = indexId
+	return builder
+}
+
+func (builder *searchSourceBuilder553) WithQuery(query string) SearchSourceBuilder {
+	builder.query = &SearchQuery553{
+		QueryString: &searchQueryString{
+			Query:   query,
+			Analyze: true,
+		},
+	}
+	return builder
+}
+
+func (builder *searchSourceBuilder553) WithFilter(filter *SearchFilter) SearchSourceBuilder {
+	builder.filters = append(builder.filters, filter)
+	return builder
+}
+
+func (builder *searchSourceBuilder553) Build() (*SearchSource, error) {
 	if builder.indexId == "" {
 		return nil, errors.New("Index id is required to create a discover search source")
 	}

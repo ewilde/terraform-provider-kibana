@@ -10,19 +10,27 @@ import (
 	"strings"
 )
 
+const kibanaIndexVanilla = "${data.kibana_index.main.id}"
+const kibanaIndexLogzio = "[logzioCustomerIndex]YYMMDD"
+
 var testSearchCreate = map[kibana.KibanaType]string{
-	kibana.KibanaTypeVanilla: testCreateSearchConfig,
-	kibana.KibanaTypeLogzio:  testCreateSearchLogzioConfig,
+	kibana.KibanaTypeVanilla: fmt.Sprintf(testCreateSearchConfig, kibanaIndexVanilla, dataKibanaIndex),
+	kibana.KibanaTypeLogzio:  fmt.Sprintf(testCreateSearchConfig, kibanaIndexLogzio, ""),
 }
 
 var testSearchCreateMeta = map[kibana.KibanaType]string{
-	kibana.KibanaTypeVanilla: testCreateSearchConfigMeta,
-	kibana.KibanaTypeLogzio:  testCreateSearchLogzioConfigMeta,
+	kibana.KibanaTypeVanilla: fmt.Sprintf(testCreateSearchConfigMeta, kibanaIndexVanilla, kibanaIndexVanilla, kibanaIndexVanilla, dataKibanaIndex),
+	kibana.KibanaTypeLogzio:  fmt.Sprintf(testCreateSearchConfigMeta, kibanaIndexLogzio, kibanaIndexLogzio, "", ""),
+}
+
+var testSearchCreateQuery = map[kibana.KibanaType]string{
+	kibana.KibanaTypeVanilla: fmt.Sprintf(testCreateSearchConfigQuery, kibanaIndexVanilla, dataKibanaIndex),
+	kibana.KibanaTypeLogzio:  fmt.Sprintf(testCreateSearchConfigQuery, kibanaIndexLogzio, ""),
 }
 
 var testSearchUpdate = map[kibana.KibanaType]string{
-	kibana.KibanaTypeVanilla: testUpdateSearchConfig,
-	kibana.KibanaTypeLogzio:  testUpdateSearchLogzioConfig,
+	kibana.KibanaTypeVanilla: fmt.Sprintf(testUpdateSearchConfig, kibanaIndexVanilla, dataKibanaIndex),
+	kibana.KibanaTypeLogzio:  fmt.Sprintf(testUpdateSearchConfig, kibanaIndexLogzio, ""),
 }
 
 func TestAccKibanaSearchApi(t *testing.T) {
@@ -53,6 +61,24 @@ func TestAccKibanaSearchApi(t *testing.T) {
 					CheckResourceAttrSet("kibana_search.china", "search.#.filters.1.match.#.field_name", "@tags"),
 					CheckResourceAttrSet("kibana_search.china", "search.#.filters.1.match.#.query", "error"),
 					CheckResourceAttrSet("kibana_search.china", "search.#.filters.1.match.#.type", "phrase"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccKibanaSearchApi_WithQuery(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckKibanaSearchDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testSearchCreateQuery[testConfig.KibanaType],
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckKibanaSearchExists("kibana_search.china"),
+					resource.TestCheckResourceAttr("kibana_search.china", "name", "Chinese search with query"),
+					resource.TestCheckResourceAttr("kibana_search.china", "description", "Chinese search results with query"),
+					CheckResourceAttrSet("kibana_search.china", "search.#.query", "geo.src:china"),
 				),
 			},
 		},
@@ -139,7 +165,7 @@ resource "kibana_search" "china" {
 	display_columns = ["_source"]
 	sort_by_columns = ["@timestamp"]
 	search = {
-		index   = "${data.kibana_index.main.id}"
+		index   = "%s"
 		filters = [
 			{
 				match = {
@@ -152,12 +178,7 @@ resource "kibana_search" "china" {
 	}
 }
 
-data "kibana_index" "main" {
-	filter = {
-		name = "title"
-		values = ["logstash-*"]
-	}
-}
+%s
 `
 
 const testCreateSearchConfigMeta = `
@@ -167,7 +188,7 @@ resource "kibana_search" "china" {
 	display_columns = ["_source"]
 	sort_by_columns = ["@timestamp"]
 	search = {
-		index   = "${data.kibana_index.main.id}"
+		index   = "%s"
 		filters = [
 			{
 				match = {
@@ -177,7 +198,7 @@ resource "kibana_search" "china" {
 				},
 
 				meta = {
-					index = "${data.kibana_index.main.id}"
+					index = "%s"
 					alias = "China"
 					type  = "phrase"
                     key   = "geo.src"
@@ -187,51 +208,38 @@ resource "kibana_search" "china" {
 						type  = "phrase"
 					}
 				}
+			},
+			{
+				exists =  "geoip.region_name",
+
+				meta = {
+					index = "%s"
+					type  = "exists"
+                    key   = "geoip.region_name"
+					value = "exists"
+				}
 			}
 		]
 	}
 }
 
-data "kibana_index" "main" {
-	filter = {
-		name = "title"
-		values = ["logstash-*"]
-	}
-}
+%s
 `
-
-const testCreateSearchLogzioConfigMeta = `
+const testCreateSearchConfigQuery = `
 resource "kibana_search" "china" {
-	name 	        = "Chinese search with filter meta"
-	description     = "Chinese search results with filter meta"
+	name 	        = "Chinese search with query"
+	description     = "Chinese search results with query"
 	display_columns = ["_source"]
 	sort_by_columns = ["@timestamp"]
 	search = {
-		index   = "[logzioCustomerIndex]YYMMDD"
-		filters = [
-			{
-				match = {
-					field_name = "geo.src"
-					query      = "CN"
-					type       = "phrase"
-				},
-
-				meta = {
-					index = "[logzioCustomerIndex]YYMMDD"
-					alias = "China"
-					type  = "phrase"
-                    key   = "geo.src"
-					value = "CN"
- 					params = {
-						query = "CN"
-						type  = "phrase"
-					}
-				}
-			}
-		]
+		index   = "%s"
+		query   = "geo.src:china"
 	}
 }
+
+%s
 `
+
 const testUpdateSearchConfig = `
 resource "kibana_search" "china" {
 	name 	        = "Chinese search - errors"
@@ -239,7 +247,7 @@ resource "kibana_search" "china" {
 	display_columns = ["_source"]
 	sort_by_columns = ["@timestamp"]
 	search = {
-		index   = "${data.kibana_index.main.id}"
+		index   = "%s"
 		filters = [
 			{
 				match = {
@@ -259,58 +267,5 @@ resource "kibana_search" "china" {
 	}
 }
 
-data "kibana_index" "main" {
-	filter = {
-		name = "title"
-		values = ["logstash-*"]
-	}
-}
-`
-
-const testCreateSearchLogzioConfig = `
-resource "kibana_search" "china" {
-	name 	        = "Chinese search"
-	description     = "Chinese search results"
-	display_columns = ["_source"]
-	sort_by_columns = ["@timestamp"]
-	search = {
-		index   = "[logzioCustomerIndex]YYMMDD"
-		filters = [
-			{
-				match = {
-					field_name = "geo.src"
-					query      = "CN"
-					type       = "phrase"
-				}
-			}
-		]
-	}
-}
-`
-const testUpdateSearchLogzioConfig = `
-resource "kibana_search" "china" {
-	name 	        = "Chinese search - errors"
-	description     = "Chinese errors"
-	display_columns = ["_source"]
-	sort_by_columns = ["@timestamp"]
-	search = {
-		index   = "[logzioCustomerIndex]YYMMDD"
-		filters = [
-			{
-				match = {
-					field_name = "geo.src"
-					query      = "CN"
-					type       = "phrase"
-				},
-			},
-			{
-				match = {
-					field_name = "@tags"
-					query      = "error"
-					type       = "phrase"
-				}
-			}
-		]
-	}
-}
+%s
 `

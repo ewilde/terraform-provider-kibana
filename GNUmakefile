@@ -1,5 +1,5 @@
 .DEFAULT_GOAL := default
-
+TEST_PATH ?= "TestAcc"
 GOFMT_FILES?=$$(find . -name '*.go' |grep -v vendor)
 $(eval REMAINDER := $$$(ELK_VERSION))
 MAIN_VERSION := $(shell echo $(ELK_VERSION) | head -c 3)
@@ -9,7 +9,7 @@ default: build test
 travisbuild: deps default
 
 test: fmtcheck docker-build
-	TF_ACC=1 go test -v ./kibana -run="TestAcc"
+	TF_ACC=1 go test -v ./kibana -run $(TEST_PATH)
 
 build: fmtcheck vet test
 	@go install
