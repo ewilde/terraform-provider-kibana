@@ -56,10 +56,18 @@ func resourceKibanaSearch() *schema.Resource {
 							Type:     schema.TypeString,
 							Required: true,
 						},
+						"query": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
 						"filters": {
 							Type: schema.TypeList,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
+									"exists": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
 									"match": {
 										Type:     schema.TypeSet,
 										Optional: true,
@@ -146,14 +154,15 @@ func resourceKibanaSearch() *schema.Resource {
 }
 
 func resourceKibanaSearchCreate(d *schema.ResourceData, meta interface{}) error {
-	searchRequest, err := createKibanaSearchCreateRequestFromResourceData(d)
+	searchClient := meta.(*kibana.KibanaClient).Search()
+	searchRequest, err := createKibanaSearchCreateRequestFromResourceData(d, searchClient)
 	if err != nil {
 		return fmt.Errorf("failed to create kibana search api: %v error: %v", searchRequest, err)
 	}
 
 	log.Printf("[INFO] Creating Kibana search %s", searchRequest.Attributes.Title)
 
-	api, err := meta.(*kibana.KibanaClient).Search().Create(searchRequest)
+	api, err := searchClient.Create(searchRequest)
 
 	if err != nil {
 		return fmt.Errorf("failed to create kibana saved search: %v error: %v", searchRequest, err)
@@ -192,13 +201,15 @@ func resourceKibanaSearchRead(d *schema.ResourceData, meta interface{}) error {
 	filters := make([]interface{}, 0, len(responseSearch.Filter))
 	for _, x := range responseSearch.Filter {
 		filters = append(filters, map[string]interface{}{
-			"match": flattenMatches(x.Query),
-			"meta":  flattenMeta(x.Meta),
+			"exists": x.Exists.Field,
+			"match":  flattenMatches(x.Query),
+			"meta":   flattenMeta(x.Meta),
 		})
 	}
 
 	search := []interface{}{map[string]interface{}{
 		"index":   responseSearch.IndexId,
+		"query":   extractQueryAsString(responseSearch.Query),
 		"filters": filters,
 	}}
 
@@ -208,16 +219,16 @@ func resourceKibanaSearchRead(d *schema.ResourceData, meta interface{}) error {
 
 	return nil
 }
-
 func resourceKibanaSearchUpdate(d *schema.ResourceData, meta interface{}) error {
-	searchRequest, err := createKibanaSearchCreateRequestFromResourceData(d)
+	searchClient := meta.(*kibana.KibanaClient).Search()
+	searchRequest, err := createKibanaSearchCreateRequestFromResourceData(d, searchClient)
 	if err != nil {
 		return fmt.Errorf("failed to update kibana search api: %v error: %v", searchRequest, err)
 	}
 
 	log.Printf("[INFO] Creating Kibana search %s", searchRequest.Attributes.Title)
 
-	_, err = meta.(*kibana.KibanaClient).Search().Update(d.Id(), &kibana.UpdateSearchRequest{Attributes: searchRequest.Attributes})
+	_, err = searchClient.Update(d.Id(), &kibana.UpdateSearchRequest{Attributes: searchRequest.Attributes})
 
 	if err != nil {
 		return fmt.Errorf("failed to update kibana saved search: %v error: %v", searchRequest, err)
@@ -240,20 +251,24 @@ func resourceKibanaSearchDelete(d *schema.ResourceData, meta interface{}) error 
 	return nil
 }
 
-func createKibanaSearchCreateRequestFromResourceData(d *schema.ResourceData) (*kibana.CreateSearchRequest, error) {
+func createKibanaSearchCreateRequestFromResourceData(d *schema.ResourceData, searchClient kibana.SearchClient) (*kibana.CreateSearchRequest, error) {
 
 	sortOrder := kibana.Descending
 	if readBoolFromResource(d, "sort_ascending") {
 		sortOrder = kibana.Ascending
 	}
 
-	searchBuilder := kibana.NewSearchSourceBuilder()
+	searchBuilder := searchClient.NewSearchSource()
 
 	if v, _ := d.GetOk("search"); v != nil {
 		searchSet := v.(*schema.Set).List()
 		if len(searchSet) == 1 {
 			searchMap := searchSet[0].(map[string]interface{})
 			searchBuilder.WithIndexId(searchMap["index"].(string))
+			stringApplyIfExists(searchMap["query"], func(value string) {
+				searchBuilder.WithQuery(value)
+			})
+
 			filters := searchMap["filters"].(interface{})
 
 			for _, filter := range filters.([]interface{}) {
@@ -293,9 +308,17 @@ func createKibanaSearchCreateRequestFromResourceData(d *schema.ResourceData) (*k
 					}
 				}
 
+				var existsFilter *kibana.SearchFilterExists
+				stringApplyIfExists(filter.(map[string]interface{})["exists"], func(value string) {
+					existsFilter = &kibana.SearchFilterExists{
+						Field: value,
+					}
+				})
+
 				searchBuilder.WithFilter(&kibana.SearchFilter{
-					Query: query,
-					Meta:  meta,
+					Query:  query,
+					Meta:   meta,
+					Exists: existsFilter,
 				})
 			}
 		}
@@ -396,4 +419,18 @@ func metaHash(v interface{}) int {
 	buf.WriteString(fmt.Sprintf("%s", m["key"].(string)))
 	buf.WriteString(fmt.Sprintf("%s", m["value"].(string)))
 	return hashcode.String(buf.String())
+}
+
+func extractQueryAsString(query interface{}) string {
+	if queryMap, ok := query.(map[string]interface{}); ok {
+		if value, ok := queryMap["query_string"]; ok {
+			return value.(map[string]interface{})["query"].(string)
+		}
+
+		if value, ok := queryMap["query"]; ok {
+			return value.(string)
+		}
+	}
+
+	return ""
 }

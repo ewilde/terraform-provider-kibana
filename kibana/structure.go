@@ -15,3 +15,13 @@ func stringOrDefault(value interface{}, defaultValue string) string {
 
 	return value.(string)
 }
+
+type stringApply func(string)
+
+func stringApplyIfExists(value interface{}, apply stringApply) {
+	if value == nil {
+		return
+	}
+
+	apply(value.(string))
+}
