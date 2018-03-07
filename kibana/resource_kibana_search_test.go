@@ -19,12 +19,12 @@ var testSearchCreate = map[kibana.KibanaType]string{
 }
 
 var testSearchCreateMeta = map[kibana.KibanaType]string{
-	kibana.KibanaTypeVanilla: fmt.Sprintf(testCreateSearchConfigMeta, kibanaIndexVanilla, kibanaIndexVanilla, dataKibanaIndex, dataKibanaIndex),
+	kibana.KibanaTypeVanilla: fmt.Sprintf(testCreateSearchConfigMeta, kibanaIndexVanilla, kibanaIndexVanilla, kibanaIndexVanilla, dataKibanaIndex),
 	kibana.KibanaTypeLogzio:  fmt.Sprintf(testCreateSearchConfigMeta, kibanaIndexLogzio, kibanaIndexLogzio, "", ""),
 }
 
 var testSearchCreateQuery = map[kibana.KibanaType]string{
-	kibana.KibanaTypeVanilla: fmt.Sprintf(testCreateSearchConfigQuery, kibanaIndexVanilla, kibanaIndexVanilla),
+	kibana.KibanaTypeVanilla: fmt.Sprintf(testCreateSearchConfigQuery, kibanaIndexVanilla, dataKibanaIndex),
 	kibana.KibanaTypeLogzio:  fmt.Sprintf(testCreateSearchConfigQuery, kibanaIndexLogzio, ""),
 }
 
