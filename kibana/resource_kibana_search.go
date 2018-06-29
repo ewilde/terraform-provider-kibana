@@ -200,8 +200,13 @@ func resourceKibanaSearchRead(d *schema.ResourceData, meta interface{}) error {
 
 	filters := make([]interface{}, 0, len(responseSearch.Filter))
 	for _, x := range responseSearch.Filter {
+		existsField := ""
+		if x.Exists != nil {
+			existsField = x.Exists.Field
+		}
+
 		filters = append(filters, map[string]interface{}{
-			"exists": x.Exists.Field,
+			"exists": existsField,
 			"match":  flattenMatches(x.Query),
 			"meta":   flattenMeta(x.Meta),
 		})
