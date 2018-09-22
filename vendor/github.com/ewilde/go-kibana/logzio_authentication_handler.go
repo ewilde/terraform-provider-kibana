@@ -48,6 +48,10 @@ func (auth *LogzAuthenticationHandler) Initialize(agent *gorequest.SuperAgent) e
 }`, authResponse.IdTokens)).
 		End()
 
+	if errs != nil {
+		return errs[0]
+	}
+
 	jwtResponse := map[string]interface{}{}
 	if err := json.Unmarshal([]byte(body), &jwtResponse); err != nil {
 		return err

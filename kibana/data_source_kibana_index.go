@@ -98,6 +98,10 @@ func matchesFilter(savedObject *kibana.SavedObject, filters *schema.Set) bool {
 
 		for _, matchOnValue := range filterMap["values"].([]interface{}) {
 			switch filterMap["name"].(string) {
+			case "id":
+				if savedObject.Id == matchOnValue {
+					passed = true
+				}
 			default:
 				if savedObject.Attributes["title"] == matchOnValue {
 					passed = true

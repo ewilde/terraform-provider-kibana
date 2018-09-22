@@ -240,7 +240,7 @@ func (api *dashboardClient553) GetById(id string) (*Dashboard, error) {
 	}
 
 	if response.StatusCode >= 300 {
-		if api.config.KibanaType == KibanaTypeLogzio && response.StatusCode == 400 { // bug in their api reports missing dashboard as bad request
+		if api.config.KibanaType == KibanaTypeLogzio && response.StatusCode >= 400 { // bug in their api reports missing dashboard as bad request / server error
 			response.StatusCode = 404
 		}
 
