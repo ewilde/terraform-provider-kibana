@@ -217,7 +217,7 @@ func (api *visualizationClient553) GetById(id string) (*Visualization, error) {
 	}
 
 	if response.StatusCode >= 300 {
-		if api.config.KibanaType == KibanaTypeLogzio && response.StatusCode == 400 { // bug in their api reports missing visualization as bad request
+		if api.config.KibanaType == KibanaTypeLogzio && response.StatusCode >= 400 { // bug in their api reports missing visualization as bad request / server error
 			response.StatusCode = 404
 		}
 

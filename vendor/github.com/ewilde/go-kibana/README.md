@@ -127,6 +127,13 @@ env ELK_VERSION=5.5.3 KIBANA_TYPE=KibanaTypeLogzio \
     KIBANA_PASSWORD=mypwd make fmt test
 ```
 
+**Kibana vanilla - running tests**
+
+example:
+```bash
+env ELK_VERSION=6.2.1 KIBANA_TYPE=KibanaTypeVanilla make
+```
+
 | Environment variables           | Description                             |
 |:----------------|:----------------------------------------|
 | ELK_VERSION| Version of ELK to run while test against logzio |
@@ -139,3 +146,9 @@ env ELK_VERSION=5.5.3 KIBANA_TYPE=KibanaTypeLogzio \
 | LOGZ_IO_ACCOUNT_ID_1| *Optional* Your primary logz.io account id, you can obtain this from the result or GET https://app-eu.logz.io/session. If not given will not run some tests to do with switching between multiple logz.io accounts|
 | LOGZ_IO_ACCOUNT_ID_2| *Optional* A secondary primary logz.io account id, you can obtain this from the result or GET https://app-eu.logz.io/session after you switch accounts in the logz.io UI. If not given will not run some tests to do with switching between multiple logz.io accounts|
 | KIBANA_DEBUG| *Optional* If set to any value i.e. 1 will print http request and response debug information|
+
+### Adding dependencies
+This project uses [govendor](https://github.com/kardianos/govendor) to manage dependencies
+
+#### Add /Update a package
+`govendor fetch github.com/owner/repo`

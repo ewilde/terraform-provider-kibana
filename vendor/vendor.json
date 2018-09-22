@@ -399,10 +399,10 @@
 			"revisionTime": "2017-01-27T09:51:30Z"
 		},
 		{
-			"checksumSHA1": "SFFRacXmTABSJRoznwCrtZE/f1Y=",
+			"checksumSHA1": "EcNu7LbFvCzdbbctNxx9/Mjx0fI=",
 			"path": "github.com/ewilde/go-kibana",
-			"revision": "44df1c9a2a708845d309ba8a8cc71d0ccb05b7e2",
-			"revisionTime": "2018-03-07T16:20:09Z"
+			"revision": "62550149f376a9a7a9aa5e113a54d04bcc4a7320",
+			"revisionTime": "2018-09-22T10:58:03Z"
 		},
 		{
 			"checksumSHA1": "2iG1OyYDGax71qsun0zBSdcFt4E=",
@@ -803,6 +803,12 @@
 			"path": "github.com/mattn/go-isatty",
 			"revision": "6ca4dbf54d38eea1a992b3c722a76a5d1c4cb25c",
 			"revisionTime": "2017-11-07T05:05:31Z"
+		},
+		{
+			"checksumSHA1": "k1MUPpAbtF6JiyP80WTId1tX/Ns=",
+			"path": "github.com/mcuadros/go-version",
+			"revision": "6d5863ca60fa6fe914b5fd43ed8533d7567c5b0b",
+			"revisionTime": "2018-06-11T08:56:57Z"
 		},
 		{
 			"checksumSHA1": "H3IQOMnazofqqNSyfY/GIx1T3mU=",
