@@ -6,6 +6,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/pkg/errors"
+	"strings"
 	"testing"
 )
 
@@ -25,7 +26,7 @@ func TestAccDataSourceKibanaIndex_Basic(t *testing.T) {
 			{
 				Config: testDataSource[testConfig.KibanaType],
 				Check: resource.ComposeTestCheckFunc(
-					testKibanaIndex[testConfig.KibanaType]("data.kibana_index.by_title"),
+					testKibanaIndex[testConfig.KibanaType]("data.kibana_index.basic"),
 				),
 			},
 		},
@@ -67,9 +68,9 @@ func testAccDataSourceKibanaIndexLogz(dataSource string) resource.TestCheckFunc 
 
 		a := r.Primary.Attributes
 
-		expectedTitle := "[logzioCustomerIndex]YYMMDD"
-		if a["title"] != expectedTitle {
-			return fmt.Errorf("expected kibana index title %s actual %s", expectedTitle, a["title"])
+		expectedTitle := "[logz-"
+		if !strings.HasPrefix(a["title"], expectedTitle) {
+			return fmt.Errorf("expected kibana index title start with %s actual %s", expectedTitle, a["title"])
 		}
 
 		expectedTimeFieldName := "@timestamp"
@@ -85,7 +86,7 @@ func testAccDataSourceKibanaIndexLogz(dataSource string) resource.TestCheckFunc 
 }
 
 const testAccDataSourceKibanaConfig = `
-data "kibana_index" "by_title" {
+data "kibana_index" "basic" {
 	filter = {
 		name = "title"
 		values = ["logstash-*"]
@@ -94,9 +95,9 @@ data "kibana_index" "by_title" {
 `
 
 const testAccDataSourceKibanaConfigLogzio = `
-data "kibana_index" "by_title" {
+data "kibana_index" "basic" {
 	filter = {
-		name = "title"
+		name = "id"
 		values = ["[logzioCustomerIndex]YYMMDD"]
 	}
 }
