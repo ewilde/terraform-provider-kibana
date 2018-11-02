@@ -28,17 +28,17 @@ provider "kibana" {
 Building The Provider
 ---------------------
 
-Clone repository to: `$GOPATH/src/github.com/hashicorp/terraform-provider-kibana`
+Clone repository to: `$GOPATH/src/github.com/ewilde/terraform-provider-kibana`
 
 ```sh
-$ mkdir -p $GOPATH/src/github.com/hashicorp; cd $GOPATH/src/github.com/hashicorp
-$ git clone git@github.com:hashicorp/terraform-provider-kibana
+$ mkdir -p $GOPATH/src/github.com/ewilde; cd $GOPATH/src/github.com/ewilde
+$ git clone git@github.com:ewilde/terraform-provider-kibana
 ```
 
 Enter the provider directory and build the provider
 
 ```sh
-$ cd $GOPATH/src/github.com/hashicorp/terraform-provider-kibana
+$ cd $GOPATH/src/github.com/ewilde/terraform-provider-kibana
 $ make build
 ```
 
