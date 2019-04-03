@@ -30,6 +30,7 @@ type LogzAuthenticationHandler struct {
 	Password     string
 	ClientId     string
 	sessionToken string
+	MfaSecret    string
 }
 
 type Auth0Response struct {

@@ -60,6 +60,12 @@ func Provider() terraform.ResourceProvider {
 				DefaultFunc: envDefaultFuncWithDefault("LOGZIO_ACCOUNT_ID", ""),
 				Description: "The logz.io account id used when connecting to logz.io",
 			},
+			"logzio_mfa_secret": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				DefaultFunc: envDefaultFuncWithDefault(kibana.EnvLogzMfaSecret, ""),
+				Description: "The logz.io MFA secret if the account has it enabled.",
+			},
 		},
 
 		DataSourcesMap: map[string]*schema.Resource{
@@ -149,11 +155,12 @@ func getAuthHandler(config *kibana.Config, d *schema.ResourceData) kibana.Authen
 
 func getLogzioAuthHandler(config *kibana.Config, d *schema.ResourceData) kibana.AuthenticationHandler {
 	return &kibana.LogzAuthenticationHandler{
-		Auth0Uri: "https://logzio.auth0.com",
-		LogzUri:  config.KibanaBaseUri,
-		ClientId: d.Get("logzio_client_id").(string),
-		UserName: d.Get("kibana_username").(string),
-		Password: d.Get("kibana_password").(string),
+		Auth0Uri:  "https://logzio.auth0.com",
+		LogzUri:   config.KibanaBaseUri,
+		ClientId:  d.Get("logzio_client_id").(string),
+		UserName:  d.Get("kibana_username").(string),
+		Password:  d.Get("kibana_password").(string),
+		MfaSecret: d.Get("logzio_mfa_secret").(string),
 	}
 }
 
