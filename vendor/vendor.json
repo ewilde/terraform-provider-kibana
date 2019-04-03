@@ -399,10 +399,10 @@
 			"revisionTime": "2017-01-27T09:51:30Z"
 		},
 		{
-			"checksumSHA1": "EcNu7LbFvCzdbbctNxx9/Mjx0fI=",
+			"checksumSHA1": "uwwzbJmEo4MYRus+WZ37ZaBglmQ=",
 			"path": "github.com/ewilde/go-kibana",
-			"revision": "62550149f376a9a7a9aa5e113a54d04bcc4a7320",
-			"revisionTime": "2018-09-22T10:58:03Z"
+			"revision": "2bfd0fdbdd9098a079a10d2caab6bbc134022a7a",
+			"revisionTime": "2019-04-03T15:10:54Z"
 		},
 		{
 			"checksumSHA1": "2iG1OyYDGax71qsun0zBSdcFt4E=",
@@ -965,6 +965,12 @@
 			"path": "github.com/ulikunitz/xz/lzma",
 			"revision": "0c6b41e72360850ca4f98dc341fd999726ea007f",
 			"revisionTime": "2017-06-05T21:53:11Z"
+		},
+		{
+			"checksumSHA1": "uN0rd74J8nc4+FnuaUu+lvWMtrg=",
+			"path": "github.com/xlzd/gotp",
+			"revision": "c8557ba2c11930b3069b31bfd80f38cc774cc68a",
+			"revisionTime": "2018-10-30T02:21:05Z"
 		},
 		{
 			"checksumSHA1": "R9ayYqxeUsPcIbs6KXCVwDIdf6M=",

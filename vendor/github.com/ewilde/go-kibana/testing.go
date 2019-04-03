@@ -73,11 +73,12 @@ func DefaultTestKibanaClient() *KibanaClient {
 
 func createLogzAuthenticationHandler() *LogzAuthenticationHandler {
 	return &LogzAuthenticationHandler{
-		Auth0Uri: "https://logzio.auth0.com",
-		LogzUri:  "https://app-eu.logz.io",
-		ClientId: os.Getenv(EnvLogzClientId),
-		UserName: os.Getenv(EnvKibanaUserName),
-		Password: os.Getenv(EnvKibanaPassword),
+		Auth0Uri:  "https://logzio.auth0.com",
+		LogzUri:   "https://app-eu.logz.io",
+		ClientId:  os.Getenv(EnvLogzClientId),
+		UserName:  os.Getenv(EnvKibanaUserName),
+		Password:  os.Getenv(EnvKibanaPassword),
+		MfaSecret: os.Getenv(EnvLogzMfaSecret),
 	}
 }
 
