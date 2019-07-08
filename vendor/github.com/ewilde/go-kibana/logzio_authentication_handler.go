@@ -4,15 +4,15 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
-	"regexp"
-	"time"
-
 	"github.com/parnurzeal/gorequest"
 	"github.com/xlzd/gotp"
+	"log"
+	"regexp"
 )
 
-var mfaCodeExpiredError = errors.New("the mfa code sent is expired")
+const (
+	auth0MFAInvalidCode = "a0.mfa_invalid_code"
+)
 
 func NewLogzAuthenticationHandler(agent *gorequest.SuperAgent) *LogzAuthenticationHandler {
 	return &LogzAuthenticationHandler{}
@@ -25,12 +25,49 @@ func (auth *LogzAuthenticationHandler) Initialize(agent *gorequest.SuperAgent) e
 	}
 
 	if auth.MfaSecret != "" {
-		return auth.initializeWithMFA(agent)
+		return auth.initializeWithAuth0MFA(agent)
 	} else {
 		return auth.initializeWithAuth0(agent)
 	}
 }
 
+// auth0RO sends an Auth0 resource owner request with the given form
+func (auth *LogzAuthenticationHandler) auth0RO(form string) (response *Auth0Response, err error) {
+	request := gorequest.New()
+	rawResponse, body, errs := request.Post(fmt.Sprintf("%s/oauth/ro", auth.Auth0Uri)).
+		Set("kbn-version", DefaultKibanaVersion553).
+		Set("Content-Type", "application/x-www-form-urlencoded").
+		Type("form").
+		Send(form).
+		End()
+
+	if errs != nil {
+		return nil, errs[0]
+	}
+
+	authResponse := &Auth0Response{}
+	if err := json.Unmarshal([]byte(body), authResponse); err != nil {
+		return nil, err
+	}
+
+	// Check for Auth0 errors
+	if authResponse.Error != "" {
+		error := fmt.Sprintf("Status: %d, Error: %s", rawResponse.StatusCode, authResponse.Error)
+		if authResponse.ErrorDescription != "" {
+			error += fmt.Sprintf(", Description: %s", authResponse.ErrorDescription)
+		}
+
+		error += fmt.Sprintf("\nResponse Body: %s", body)
+
+		// We still return authResponse here in case the caller wants to access the Auth0 errors
+		//	e.g. to retry on MFA expiry
+		return authResponse, errors.New(error)
+	}
+
+	return authResponse, nil
+}
+
+// initializeWithAuth0 exchanges non-MFA credentials for a session token
 func (auth *LogzAuthenticationHandler) initializeWithAuth0(agent *gorequest.SuperAgent) error {
 	csrfToken, err := auth.getCSRFToken()
 
@@ -38,41 +75,27 @@ func (auth *LogzAuthenticationHandler) initializeWithAuth0(agent *gorequest.Supe
 		return err
 	}
 
-	request := gorequest.New()
-	response, body, errs := request.Post(fmt.Sprintf("%s/oauth/ro", auth.Auth0Uri)).
-		Set("kbn-version", DefaultKibanaVersion553).
-		Set("Content-Type", "application/x-www-form-urlencoded").
-		Type("form").
-		Send(fmt.Sprintf(`{
-  "scope": "openid email connection",
-  "response_type": "code",
-  "connection": "Username-Password-Authentication",
-  "username": "%s",
-  "password": "%s",
-  "grant_type": "password",
-  "client_id": "%s"
-}`, auth.UserName, auth.Password, auth.ClientId)).
-		End()
-
-	if errs != nil {
-		return errs[0]
-	}
-
-	if response.StatusCode >= 300 {
-		return errors.New(fmt.Sprintf("Status: %d, %s", response.StatusCode, body))
-	}
-
-	authResponse := &Auth0Response{}
-	if err := json.Unmarshal([]byte(body), authResponse); err != nil {
+	form := fmt.Sprintf(`{
+	  "scope": "openid email connection",
+	  "response_type": "code",
+	  "connection": "Username-Password-Authentication",
+	  "username": "%s",
+	  "password": "%s",
+	  "grant_type": "password",
+	  "client_id": "%s"
+	}`, auth.UserName, auth.Password, auth.ClientId)
+	authResponse, err := auth.auth0RO(form)
+	if err != nil {
 		return err
 	}
 
-	response, body, errs = request.Post(fmt.Sprintf("%s/login/jwt", auth.LogzUri)).
+	request := gorequest.New()
+	response, body, errs := request.Post(fmt.Sprintf("%s/login/jwt", auth.LogzUri)).
 		Set("x-logz-csrf-token", csrfToken).
 		Set("cookie", fmt.Sprintf("Logzio-Csrf=%s", csrfToken)).
 		Send(fmt.Sprintf(`{
-  "jwt": "%s"
-}`, authResponse.IdTokens)).
+		  "jwt": "%s"
+		}`, authResponse.IdTokens)).
 		End()
 
 	if errs != nil {
@@ -93,7 +116,8 @@ func (auth *LogzAuthenticationHandler) initializeWithAuth0(agent *gorequest.Supe
 	return nil
 }
 
-func (auth *LogzAuthenticationHandler) initializeWithMFA(agent *gorequest.SuperAgent) error {
+// initializeWithAuth0MFA exchanges MFA credentials for a session token
+func (auth *LogzAuthenticationHandler) initializeWithAuth0MFA(agent *gorequest.SuperAgent) error {
 	request := gorequest.New()
 	csrfToken, err := auth.getCSRFToken()
 
@@ -101,16 +125,7 @@ func (auth *LogzAuthenticationHandler) initializeWithMFA(agent *gorequest.SuperA
 		return err
 	}
 
-	mfaCode, secondsLeftForMfaToExpire := auth.getMfaCodeWithExpiry()
-	sessionToken, err := auth.getLogzioSessionToken(mfaCode)
-
-	// Attempt regeneration if possible
-	if err == mfaCodeExpiredError && secondsLeftForMfaToExpire < 5 {
-		log.Print("The mfa code was too close to expiry, so we re-generate and try again")
-		mfaCode, secondsLeftForMfaToExpire = auth.getMfaCodeWithExpiry()
-		sessionToken, err = auth.getLogzioSessionToken(mfaCode)
-	}
-
+	sessionToken, err := auth.getLogzioSessionToken(true)
 	// If we're still failing, we cannot proceed
 	if err != nil {
 		return fmt.Errorf("Error getting MFA code: %s", err)
@@ -180,14 +195,10 @@ func (auth *LogzAuthenticationHandler) getCSRFToken() (string, error) {
 	return csrfToken, nil
 }
 
-func (auth *LogzAuthenticationHandler) getLogzioSessionToken(mfaCode string) (string, error) {
+func (auth *LogzAuthenticationHandler) getLogzioSessionToken(retry bool) (sessionToken string, err error) {
+	mfaCode := auth.getMFACode()
 
-	request := gorequest.New()
-	response, body, errs := request.Post(fmt.Sprintf("%s/oauth/ro", auth.Auth0Uri)).
-		Set("kbn-version", DefaultKibanaVersion553).
-		Set("Content-Type", "application/x-www-form-urlencoded").
-		Type("form").
-		Send(fmt.Sprintf(`{
+	form := fmt.Sprintf(`{
 	  "scope": "openid email connection",
 	  "response_type": "code",
 	  "connection": "Username-Password-Authentication",
@@ -196,33 +207,26 @@ func (auth *LogzAuthenticationHandler) getLogzioSessionToken(mfaCode string) (st
 	  "grant_type": "password",
 	  "client_id": "%s",
 	  "mfa_code": "%s"
-	}`, auth.UserName, auth.Password, auth.ClientId, mfaCode)).
-		End()
+	}`, auth.UserName, auth.Password, auth.ClientId, mfaCode)
+	authResponse, err := auth.auth0RO(form)
 
-	if errs != nil {
-		return "", errs[0]
+	if authResponse != nil && authResponse.Error == auth0MFAInvalidCode && retry {
+		log.Print("MFA code potentially expired, so we re-generate and try again")
+		sessionToken, err = auth.getLogzioSessionToken(false)
+
+		if err != nil {
+			return
+		}
+	} else if err != nil {
+		return
 	}
 
-	if response.StatusCode == 401 && mfaCode != "" {
-		return "", mfaCodeExpiredError
-	}
-
-	if response.StatusCode >= 300 {
-		return "", errors.New(fmt.Sprintf("Status: %d, %s", response.StatusCode, body))
-	}
-
-	authResponse := &Auth0Response{}
-	if err := json.Unmarshal([]byte(body), authResponse); err != nil {
-		return "", err
-	}
-
-	return authResponse.IdTokens, nil
-
+	sessionToken = authResponse.IdTokens
+	return
 }
-func (auth *LogzAuthenticationHandler) getMfaCodeWithExpiry() (string, int64) {
-	mfaCode, otpExpirationTime := gotp.NewDefaultTOTP(auth.MfaSecret).NowWithExpiration()
-	secondsForOtpExpiry := otpExpirationTime - time.Now().Unix()
-	return mfaCode, secondsForOtpExpiry
+
+func (auth *LogzAuthenticationHandler) getMFACode() string {
+	return gotp.NewDefaultTOTP(auth.MfaSecret).Now()
 }
 
 func (auth *LogzAuthenticationHandler) setLogzHeaders(agent *gorequest.SuperAgent) *gorequest.SuperAgent {

@@ -1,12 +1,13 @@
 package kibana
 
 import (
-	"github.com/parnurzeal/gorequest"
-	"gopkg.in/ory-am/dockertest.v3"
 	"log"
 	"os"
 	"strings"
 	"testing"
+
+	"github.com/parnurzeal/gorequest"
+	"gopkg.in/ory-am/dockertest.v3"
 )
 
 type testContext struct {
@@ -24,7 +25,10 @@ var authForContainerVersion = map[string]map[KibanaType]AuthenticationHandler{
 		KibanaTypeVanilla: &BasicAuthenticationHandler{"elastic", "changeme"},
 		KibanaTypeLogzio:  createLogzAuthenticationHandler(),
 	},
-	DefaultLogzioVersion:  {KibanaTypeLogzio: createLogzAuthenticationHandler()},
+	DefaultLogzioVersion: {
+		KibanaTypeLogzio:  createLogzAuthenticationHandler(),
+		KibanaTypeVanilla: &NoAuthenticationHandler{},
+	},
 	DefaultKibanaVersion6: {KibanaTypeVanilla: &NoAuthenticationHandler{}},
 }
 
