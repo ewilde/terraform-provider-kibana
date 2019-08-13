@@ -3,7 +3,8 @@ package kibana
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/satori/go.uuid"
+
+	uuid "github.com/satori/go.uuid"
 )
 
 type VisualizationClient interface {
@@ -132,6 +133,9 @@ func (api *visualizationClient600) GetById(id string) (*Visualization, error) {
 	}
 
 	if response.StatusCode >= 300 {
+		if api.config.KibanaType == KibanaTypeLogzio && response.StatusCode >= 400 { // bug in their api reports missing visualization as bad request / server error
+			response.StatusCode = 404
+		}
 		return nil, NewError(response, body, "Could not fetch visualization")
 	}
 

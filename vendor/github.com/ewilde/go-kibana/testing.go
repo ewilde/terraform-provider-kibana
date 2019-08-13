@@ -1,6 +1,7 @@
 package kibana
 
 import (
+	"github.com/parnurzeal/gorequest"
 	"gopkg.in/ory-am/dockertest.v3"
 	"log"
 	"os"
@@ -23,6 +24,7 @@ var authForContainerVersion = map[string]map[KibanaType]AuthenticationHandler{
 		KibanaTypeVanilla: &BasicAuthenticationHandler{"elastic", "changeme"},
 		KibanaTypeLogzio:  createLogzAuthenticationHandler(),
 	},
+	DefaultLogzioVersion:  {KibanaTypeLogzio: createLogzAuthenticationHandler()},
 	DefaultKibanaVersion6: {KibanaTypeVanilla: &NoAuthenticationHandler{}},
 }
 
@@ -30,6 +32,10 @@ func getAuthForContainerVersion(version string, kibanaType KibanaType) Authentic
 	handler, ok := authForContainerVersion[version]
 	if !ok {
 		handler = authForContainerVersion[DefaultKibanaVersion6]
+	}
+
+	if kibanaType == KibanaTypeLogzio {
+		handler = authForContainerVersion[DefaultLogzioVersion]
 	}
 
 	return handler[kibanaType]
@@ -71,17 +77,6 @@ func DefaultTestKibanaClient() *KibanaClient {
 	return kibanaClient
 }
 
-func createLogzAuthenticationHandler() *LogzAuthenticationHandler {
-	return &LogzAuthenticationHandler{
-		Auth0Uri:  "https://logzio.auth0.com",
-		LogzUri:   "https://app-eu.logz.io",
-		ClientId:  os.Getenv(EnvLogzClientId),
-		UserName:  os.Getenv(EnvKibanaUserName),
-		Password:  os.Getenv(EnvKibanaPassword),
-		MfaSecret: os.Getenv(EnvLogzMfaSecret),
-	}
-}
-
 func startKibana(elkVersion string, client *KibanaClient) (*testContext, error) {
 	log.SetOutput(os.Stdout)
 
@@ -105,6 +100,25 @@ func startKibana(elkVersion string, client *KibanaClient) (*testContext, error) 
 		containers:    []container{elasticSearch, kibana},
 		KibanaUri:     kibana.Uri,
 		KibanaIndexId: index}, nil
+}
+
+func createLogzAuthenticationHandler() *LogzAuthenticationHandler {
+	agent := gorequest.New()
+	agent.Debug = os.Getenv(EnvKibanaDebug) != ""
+	uri := os.Getenv(EnvKibanaUri)
+	if uri == "" {
+		uri = "https://app-eu.logz.io"
+	}
+
+	handler := NewLogzAuthenticationHandler(agent)
+	handler.Auth0Uri = "https://logzio.auth0.com"
+	handler.LogzUri = uri
+	handler.ClientId = os.Getenv(EnvLogzClientId)
+	handler.UserName = os.Getenv(EnvKibanaUserName)
+	handler.Password = os.Getenv(EnvKibanaPassword)
+	handler.MfaSecret = os.Getenv(EnvLogzMfaSecret)
+
+	return handler
 }
 
 func stopKibana(testContext *testContext) {

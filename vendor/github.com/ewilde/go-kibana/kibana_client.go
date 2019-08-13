@@ -2,11 +2,13 @@ package kibana
 
 import (
 	"fmt"
-	"github.com/google/go-querystring/query"
+	"log"
 	"net/url"
 	"os"
 	"reflect"
 	"strings"
+
+	"github.com/google/go-querystring/query"
 )
 
 const EnvElasticSearchPath = "ELASTIC_SEARCH_PATH"
@@ -22,6 +24,7 @@ const EnvLogzMfaSecret = "LOGZ_MFA_SECRET"
 const DefaultKibanaUri = "http://localhost:5601"
 const DefaultElasticSearchPath = "/es_admin/.kibana"
 const DefaultKibanaVersion6 = "6.0.0"
+const DefaultLogzioVersion = "6.3.2"
 const DefaultKibanaVersion553 = "5.5.3"
 const DefaultKibanaVersion = DefaultKibanaVersion6
 const DefaultKibanaIndexId = "logstash-*"
@@ -57,6 +60,7 @@ type Config struct {
 	KibanaBaseUri     string
 	KibanaVersion     string
 	KibanaType        KibanaType
+	Insecure          bool
 }
 
 type KibanaClient struct {
@@ -166,6 +170,7 @@ func NewDefaultConfig() *Config {
 		KibanaBaseUri:     DefaultKibanaUri,
 		KibanaVersion:     DefaultKibanaVersion,
 		KibanaType:        KibanaTypeVanilla,
+		Insecure:          false,
 	}
 
 	if value := os.Getenv(EnvElasticSearchPath); value != "" {
@@ -236,6 +241,11 @@ func (kibanaClient *KibanaClient) IndexPattern() IndexPatternClient {
 
 func (kibanaClient *KibanaClient) SavedObjects() SavedObjectsClient {
 	return getSavedObjectsClientFromVersion(kibanaClient.Config.KibanaVersion, kibanaClient)
+}
+
+func (kibanaClient *KibanaClient) SetLogger(logger *log.Logger) *KibanaClient {
+	kibanaClient.client.SetLogger(logger)
+	return kibanaClient
 }
 
 func (config *Config) BuildFullPath(format string, a ...interface{}) string {
