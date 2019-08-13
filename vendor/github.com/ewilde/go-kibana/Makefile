@@ -4,6 +4,7 @@ TEST?=$$(go list ./... |grep -v 'vendor')
 GOFMT_FILES?=$$(find . -name '*.go' |grep -v vendor)
 $(eval REMAINDER := $$$(ELK_VERSION))
 MAIN_VERSION := $(shell echo $(ELK_VERSION) | head -c 3)
+GO111MODULE := off
 
 default: build test
 

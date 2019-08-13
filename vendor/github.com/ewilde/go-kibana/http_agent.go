@@ -1,6 +1,10 @@
 package kibana
 
 import (
+	"crypto/tls"
+	"log"
+	"os"
+
 	"github.com/parnurzeal/gorequest"
 )
 
@@ -8,6 +12,7 @@ type HttpAgent struct {
 	client      *gorequest.SuperAgent
 	authHandler AuthenticationHandler
 	config      *Config
+	logger      *log.Logger
 }
 
 type AuthenticationHandler interface {
@@ -31,6 +36,7 @@ type LogzAuthenticationHandler struct {
 	ClientId     string
 	sessionToken string
 	MfaSecret    string
+	csrfToken    string
 }
 
 type Auth0Response struct {
@@ -43,6 +49,7 @@ func NewHttpAgent(config *Config, authHandler AuthenticationHandler) *HttpAgent 
 	return &HttpAgent{
 		authHandler: authHandler,
 		config:      config,
+		logger:      log.New(os.Stderr, "", log.LstdFlags),
 	}
 }
 
@@ -98,6 +105,11 @@ func (authClient *HttpAgent) End(callback ...func(response gorequest.Response, b
 	return authClient.client.End(callback...)
 }
 
+func (authClient *HttpAgent) SetLogger(logger *log.Logger) *HttpAgent {
+	authClient.logger = logger
+	return authClient
+}
+
 func NewBasicAuthentication(userName string, password string) *BasicAuthenticationHandler {
 	return &BasicAuthenticationHandler{userName: userName, password: password}
 }
@@ -126,6 +138,9 @@ func (authClient *HttpAgent) clone() *HttpAgent {
 func (authClient *HttpAgent) createSuperAgent() *gorequest.SuperAgent {
 	superAgent := gorequest.New()
 	superAgent.Debug = authClient.config.Debug
-
+	superAgent.SetLogger(authClient.logger)
+	if authClient.config.Insecure {
+		superAgent.TLSClientConfig(&tls.Config{InsecureSkipVerify: true})
+	}
 	return superAgent
 }

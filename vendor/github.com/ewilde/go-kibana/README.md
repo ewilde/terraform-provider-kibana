@@ -141,6 +141,7 @@ env ELK_VERSION=6.2.1 KIBANA_TYPE=KibanaTypeVanilla make
 | KIBANA_URI| Your logz.io base uri i.e. https://app-eu.logz.io |
 | ELASTIC_SEARCH_PATH| Always /kibana/elasticsearch/logzioCustomerKibanaIndex for logz.io|
 | LOGZ_CLIENT_ID| Obtained for the POST data call to https://logzio.auth0.com/oauth/ro. Use chrome developer tools when you login to logz.io to obtain this. |
+|LOGZ_MFA_SECRET| _Optional_ One time password secret, if account requires MFA. |
 | KIBANA_USERNAME| Your logz.io username|
 | KIBANA_PASSWORD| Your logz.io password|
 | LOGZ_IO_ACCOUNT_ID_1| *Optional* Your primary logz.io account id, you can obtain this from the result or GET https://app-eu.logz.io/session. If not given will not run some tests to do with switching between multiple logz.io accounts|

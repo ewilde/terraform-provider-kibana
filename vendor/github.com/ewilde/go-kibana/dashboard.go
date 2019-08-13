@@ -3,7 +3,8 @@ package kibana
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/satori/go.uuid"
+
+	uuid "github.com/satori/go.uuid"
 )
 
 type DashboardClient interface {
@@ -155,6 +156,9 @@ func (api *dashboardClient600) GetById(id string) (*Dashboard, error) {
 	}
 
 	if response.StatusCode >= 300 {
+		if api.config.KibanaType == KibanaTypeLogzio && response.StatusCode >= 400 { // bug in their api reports missing dashboard as bad request / server error
+			response.StatusCode = 404
+		}
 		return nil, NewError(response, body, "Could not fetch dashboard")
 	}
 
