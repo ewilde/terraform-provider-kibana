@@ -2,11 +2,12 @@ package kibana
 
 import (
 	"fmt"
+	"log"
+	"os"
+
 	"github.com/ewilde/go-kibana"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
-	"log"
-	"os"
 )
 
 func Provider() terraform.ResourceProvider {
@@ -123,7 +124,10 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 	client.Config.Debug = GetEnvVarOrDefaultBool("KIBANA_DEBUG", false)
 
 	if accountId, ok := d.GetOk("logzio_account_id"); ok && len(accountId.(string)) > 0 {
-		client.ChangeAccount(accountId.(string))
+		err := client.ChangeAccount(accountId.(string))
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return client, nil
