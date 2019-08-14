@@ -12,7 +12,7 @@ after_success:
 env:
   matrix:
   - ELK_VERSION=5.5.3   KIBANA_TYPE=KibanaTypeVanilla   KIBANA_USERNAME=elastic             KIBANA_PASSWORD=changeme  ELASTIC_PACK=
-  - ELK_VERSION=5.5.3   KIBANA_TYPE=KibanaTypeLogzio    KIBANA_URI=https://app-eu.logz.io   ELASTIC_SEARCH_PATH=/kibana/elasticsearch/logzioCustomerKibanaIndex
+  - ELK_VERSION=6.3.2   KIBANA_TYPE=KibanaTypeLogzio    KIBANA_URI=https://app-eu.logz.io   ELASTIC_SEARCH_PATH=/kibana/elasticsearch/logzioCustomerKibanaIndex
   - ELK_VERSION=6.2.1   KIBANA_TYPE=KibanaTypeVanilla
   - ELK_VERSION=6.3.2   KIBANA_TYPE=KibanaTypeVanilla
   - ELK_VERSION=6.4.1   KIBANA_TYPE=KibanaTypeVanilla
