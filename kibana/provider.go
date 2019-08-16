@@ -14,7 +14,7 @@ import (
 type KibanaProvider struct {
 	*schema.Provider
 	client *kibana.KibanaClient
-	once sync.Once
+	once   sync.Once
 }
 
 func Provider() terraform.ResourceProvider {
