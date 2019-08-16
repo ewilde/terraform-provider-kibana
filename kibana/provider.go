@@ -4,83 +4,94 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"sync"
 
 	"github.com/ewilde/go-kibana"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
 )
 
+type KibanaProvider struct {
+	*schema.Provider
+	client *kibana.KibanaClient
+	once sync.Once
+}
+
 func Provider() terraform.ResourceProvider {
-	return &schema.Provider{
-		Schema: map[string]*schema.Schema{
-			"elastic_search_path": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				DefaultFunc: envDefaultFuncWithDefault(kibana.EnvElasticSearchPath, kibana.DefaultElasticSearchPath),
-				Description: "The elastic search path, defaults to: " + kibana.DefaultElasticSearchPath,
+	kp := &KibanaProvider{
+		Provider: &schema.Provider{
+			Schema: map[string]*schema.Schema{
+				"elastic_search_path": {
+					Type:        schema.TypeString,
+					Optional:    true,
+					DefaultFunc: envDefaultFuncWithDefault(kibana.EnvElasticSearchPath, kibana.DefaultElasticSearchPath),
+					Description: "The elastic search path, defaults to: " + kibana.DefaultElasticSearchPath,
+				},
+				"kibana_uri": {
+					Type:        schema.TypeString,
+					Optional:    true,
+					DefaultFunc: envDefaultFuncWithDefault(kibana.EnvKibanaUri, kibana.DefaultKibanaUri),
+					Description: "The address of the kibana admin url, defaults to: " + kibana.DefaultKibanaUri,
+				},
+				"kibana_type": {
+					Type:        schema.TypeString,
+					Optional:    true,
+					DefaultFunc: envDefaultFuncWithDefault(kibana.EnvKibanaType, kibana.KibanaTypeVanilla.String()),
+					Description: "The type of the kibana either vanilla or logz.io, defaults to: " + kibana.KibanaTypeVanilla.String(),
+				},
+				"kibana_version": {
+					Type:        schema.TypeString,
+					Optional:    true,
+					DefaultFunc: envDefaultFuncWithDefault(kibana.EnvKibanaVersion, kibana.DefaultKibanaVersion),
+					Description: "The version of kibana being terraformed either 6.0.0 or 5.5.3, defaults to: " + kibana.DefaultKibanaVersion,
+				},
+				"kibana_username": {
+					Type:        schema.TypeString,
+					Optional:    true,
+					DefaultFunc: envDefaultFuncWithDefault(kibana.EnvKibanaUserName, ""),
+					Description: "The username used to connect to kibana",
+				},
+				"kibana_password": {
+					Type:        schema.TypeString,
+					Optional:    true,
+					DefaultFunc: envDefaultFuncWithDefault(kibana.EnvKibanaPassword, ""),
+					Description: "The password used to connect to kibana",
+				},
+				"logzio_client_id": {
+					Type:        schema.TypeString,
+					Optional:    true,
+					DefaultFunc: envDefaultFuncWithDefault(kibana.EnvLogzClientId, ""),
+					Description: "The logz.io client id used when connecting to logz.io",
+				},
+				"logzio_account_id": {
+					Type:        schema.TypeString,
+					Optional:    true,
+					DefaultFunc: envDefaultFuncWithDefault("LOGZIO_ACCOUNT_ID", ""),
+					Description: "The logz.io account id used when connecting to logz.io",
+				},
+				"logzio_mfa_secret": {
+					Type:        schema.TypeString,
+					Optional:    true,
+					DefaultFunc: envDefaultFuncWithDefault(kibana.EnvLogzMfaSecret, ""),
+					Description: "The logz.io MFA secret if the account has it enabled.",
+				},
 			},
-			"kibana_uri": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				DefaultFunc: envDefaultFuncWithDefault(kibana.EnvKibanaUri, kibana.DefaultKibanaUri),
-				Description: "The address of the kibana admin url, defaults to: " + kibana.DefaultKibanaUri,
+
+			DataSourcesMap: map[string]*schema.Resource{
+				"kibana_index": dataSourceKibanaIndex(),
 			},
-			"kibana_type": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				DefaultFunc: envDefaultFuncWithDefault(kibana.EnvKibanaType, kibana.KibanaTypeVanilla.String()),
-				Description: "The type of the kibana either vanilla or logz.io, defaults to: " + kibana.KibanaTypeVanilla.String(),
-			},
-			"kibana_version": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				DefaultFunc: envDefaultFuncWithDefault(kibana.EnvKibanaVersion, kibana.DefaultKibanaVersion),
-				Description: "The version of kibana being terraformed either 6.0.0 or 5.5.3, defaults to: " + kibana.DefaultKibanaVersion,
-			},
-			"kibana_username": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				DefaultFunc: envDefaultFuncWithDefault(kibana.EnvKibanaUserName, ""),
-				Description: "The username used to connect to kibana",
-			},
-			"kibana_password": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				DefaultFunc: envDefaultFuncWithDefault(kibana.EnvKibanaPassword, ""),
-				Description: "The password used to connect to kibana",
-			},
-			"logzio_client_id": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				DefaultFunc: envDefaultFuncWithDefault(kibana.EnvLogzClientId, ""),
-				Description: "The logz.io client id used when connecting to logz.io",
-			},
-			"logzio_account_id": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				DefaultFunc: envDefaultFuncWithDefault("LOGZIO_ACCOUNT_ID", ""),
-				Description: "The logz.io account id used when connecting to logz.io",
-			},
-			"logzio_mfa_secret": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				DefaultFunc: envDefaultFuncWithDefault(kibana.EnvLogzMfaSecret, ""),
-				Description: "The logz.io MFA secret if the account has it enabled.",
+
+			ResourcesMap: map[string]*schema.Resource{
+				"kibana_search":        resourceKibanaSearch(),
+				"kibana_visualization": resourceKibanaVisualization(),
+				"kibana_dashboard":     resourceKibanaDashboard(),
 			},
 		},
-
-		DataSourcesMap: map[string]*schema.Resource{
-			"kibana_index": dataSourceKibanaIndex(),
-		},
-
-		ResourcesMap: map[string]*schema.Resource{
-			"kibana_search":        resourceKibanaSearch(),
-			"kibana_visualization": resourceKibanaVisualization(),
-			"kibana_dashboard":     resourceKibanaDashboard(),
-		},
-
-		ConfigureFunc: providerConfigure,
 	}
+
+	kp.ConfigureFunc = kp.providerConfigure
+
+	return kp
 }
 
 func envDefaultFuncWithDefault(key string, defaultValue string) schema.SchemaDefaultFunc {
@@ -111,26 +122,34 @@ func GetEnvVarOrDefaultBool(key string, defaultValue bool) bool {
 	}
 }
 
-func providerConfigure(d *schema.ResourceData) (interface{}, error) {
-	config := &kibana.Config{
-		ElasticSearchPath: d.Get("elastic_search_path").(string),
-		KibanaBaseUri:     d.Get("kibana_uri").(string),
-		KibanaType:        kibana.ParseKibanaType(d.Get("kibana_type").(string)),
-		KibanaVersion:     d.Get("kibana_version").(string),
-	}
+func (p *KibanaProvider) providerConfigure(d *schema.ResourceData) (interface{}, error) {
+	var err error
 
-	client := kibana.NewClient(config)
-	client.SetAuth(authForContainerVersion[config.KibanaType](config, d))
-	client.Config.Debug = GetEnvVarOrDefaultBool("KIBANA_DEBUG", false)
-
-	if accountId, ok := d.GetOk("logzio_account_id"); ok && len(accountId.(string)) > 0 {
-		err := client.ChangeAccount(accountId.(string))
-		if err != nil {
-			return nil, err
+	p.once.Do(func() {
+		config := &kibana.Config{
+			ElasticSearchPath: d.Get("elastic_search_path").(string),
+			KibanaBaseUri:     d.Get("kibana_uri").(string),
+			KibanaType:        kibana.ParseKibanaType(d.Get("kibana_type").(string)),
+			KibanaVersion:     d.Get("kibana_version").(string),
 		}
+
+		client := kibana.NewClient(config)
+		client.SetAuth(authForContainerVersion[config.KibanaType](config, d))
+		client.Config.Debug = GetEnvVarOrDefaultBool("KIBANA_DEBUG", false)
+
+		if accountId, ok := d.GetOk("logzio_account_id"); ok && len(accountId.(string)) > 0 {
+			err = client.ChangeAccount(accountId.(string))
+			return
+		}
+
+		p.client = client
+	})
+
+	if err != nil {
+		return nil, err
 	}
 
-	return client, nil
+	return p.client, nil
 }
 
 var authForContainerVersion = map[kibana.KibanaType]func(config *kibana.Config, d *schema.ResourceData) kibana.AuthenticationHandler{

@@ -13,11 +13,11 @@ import (
 )
 
 var testAccProviders map[string]terraform.ResourceProvider
-var testAccProvider *schema.Provider
+var testAccProvider *KibanaProvider
 var testConfig *kibana.Config
 
 func init() {
-	testAccProvider = Provider().(*schema.Provider)
+	testAccProvider = Provider().(*KibanaProvider)
 	testAccProviders = map[string]terraform.ResourceProvider{
 		"kibana": testAccProvider,
 	}
