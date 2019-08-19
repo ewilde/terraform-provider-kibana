@@ -35,10 +35,6 @@ build-gox: deps fmtcheck vet
 	gox -osarch="linux/amd64 windows/amd64 darwin/amd64" \
 	-output="pkg/{{.OS}}_{{.Arch}}/terraform-provider-kibana" .
 
-release:
-	go get github.com/goreleaser/goreleaser; \
-    goreleaser; \
-
 deps:
 	go get -u golang.org/x/net/context; \
     go get -u github.com/mitchellh/gox; \
