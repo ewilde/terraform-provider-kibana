@@ -139,7 +139,9 @@ func (p *KibanaProvider) providerConfigure(d *schema.ResourceData) (interface{},
 
 		if accountId, ok := d.GetOk("logzio_account_id"); ok && len(accountId.(string)) > 0 {
 			err = client.ChangeAccount(accountId.(string))
-			return
+			if err != nil {
+				return
+			}
 		}
 
 		p.client = client
