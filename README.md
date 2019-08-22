@@ -39,7 +39,7 @@ Enter the provider directory and build the provider
 
 ```sh
 $ cd $GOPATH/src/github.com/ewilde/terraform-provider-kibana
-$ make build
+$ ELK_VERSION=6.2.3 KIBANA_TYPE=KibanaTypeVanilla make build
 ```
 
 Using the provider
@@ -202,19 +202,19 @@ If you wish to work on the provider, you'll first need [Go](http://www.golang.or
 To compile the provider, run `make build`. This will build the provider and put the provider binary in the `$GOPATH/bin` directory.
 
 ```sh
-$ make bin
+$ ELK_VERSION=6.2.3 KIBANA_TYPE=KibanaTypeVanilla make build
 ...
 $ $GOPATH/bin/terraform-provider-kibana
 ...
 ```
 
-In order to test the provider, you can simply run `make test`.
+In order to test the provider, you can simply run `make test`. Note that `ELK_VERSION` and `KIBANA_TYPE` are used to control the test targets. The full list of test targets is visible in `.travis.yml`.
 
 ```sh
-$ make test
+$ ELK_VERSION=6.2.3 KIBANA_TYPE=KibanaTypeVanilla make test
 ```
 
-In order to run the full suite of Acceptance tests, run `make testacc ELK_VERSION=6.2.1 KIBANA_TYPE=KibanaTypeVanilla`.
+In order to run the full suite of Acceptance tests, run `ELK_VERSION=6.2.3 KIBANA_TYPE=KibanaTypeVanilla make testacc`.
 
 *Note:* Acceptance tests create real resources, and often cost money to run.
 
