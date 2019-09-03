@@ -68,7 +68,7 @@ func testAccDataSourceKibanaIndexLogz(dataSource string) resource.TestCheckFunc 
 
 		a := r.Primary.Attributes
 
-		expectedTitle := "[logz-"
+		expectedTitle := "[logzio"
 		if !strings.HasPrefix(a["title"], expectedTitle) {
 			return fmt.Errorf("expected kibana index title start with %s actual %s", expectedTitle, a["title"])
 		}
