@@ -2,9 +2,18 @@
 TEST_PATH ?= "TestAcc"
 GOFMT_FILES?=$$(find . -name '*.go' |grep -v vendor)
 $(eval REMAINDER := $$$(ELK_VERSION))
-MAIN_VERSION := $(shell echo $(ELK_VERSION) | head -c 3)
 
 default: build test
+
+check-elk-version:
+ifndef ELK_VERSION
+	$(error ELK_VERSION is undefined)
+endif
+
+check-kibana-type:
+ifndef KIBANA_TYPE
+	$(error KIBANA_TYPE is undefined)
+endif
 
 travisbuild: deps default
 
@@ -17,7 +26,9 @@ build: fmtcheck vet test
 	@cp $(GOPATH)/bin/terraform-provider-kibana ~/.terraform.d/plugins/terraform-provider-kibana
 	@echo "Build succeeded"
 
-docker-build:
+docker-build: check-elk-version check-kibana-type
+	$(eval MAIN_VERSION := $(shell echo $(ELK_VERSION) | head -c 3))
+
 	@echo building docker ELK_VERSION:$(ELK_VERSION) KIBANA_TYPE: $(KIBANA_TYPE) MAIN_VERSION: $(MAIN_VERSION)
 	@if [ "$(ELK_VERSION)" = "./..." ]; then \
 		echo "ERROR: Set ELK_VERSION to a specific version. For example,"; \
