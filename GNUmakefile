@@ -15,7 +15,7 @@ ifndef KIBANA_TYPE
 	$(error KIBANA_TYPE is undefined)
 endif
 
-travisbuild: deps default
+travisbuild: default
 
 test: fmtcheck docker-build
 	TF_ACC=1 go test -v ./kibana -run $(TEST_PATH)
@@ -42,13 +42,9 @@ docker-build: check-elk-version check-kibana-type
 start-kibana: docker-build
 	@sh -c "'$(CURDIR)/scripts/start-docker.sh'"
 
-build-gox: deps fmtcheck vet
+build-gox: fmtcheck vet
 	gox -osarch="linux/amd64 windows/amd64 darwin/amd64" \
 	-output="pkg/{{.OS}}_{{.Arch}}/terraform-provider-kibana" .
-
-deps:
-	go get -u golang.org/x/net/context; \
-    go get -u github.com/mitchellh/gox; \
 
 clean:
 	rm -rf pkg/
@@ -59,12 +55,7 @@ fmtcheck:
 	@sh -c "'$(CURDIR)/scripts/gofmtcheck.sh'"
 
 vet:
-	@echo "go vet ."
-	@go vet $$(go list ./... | grep -v vendor/) ; if [ $$? -eq 1 ]; then \
-		echo ""; \
-		echo "Vet found suspicious constructs. Please check the reported constructs"; \
-		echo "and fix them if necessary before submitting the code for review."; \
-		exit 1; \
-	fi
+	echo "go vet ."
+	go vet $$(go list ./... | grep -v vendor/)
 
 .PHONY: build test vet fmt fmtcheck errcheck vendor-status test-compile release docker-build start-kibana

@@ -46,47 +46,48 @@ Using the provider
 ----------------------
 ## Example creating saved search, visualization and dashboard resources
 ```hcl
-provider "kibana" {
-}
+provider "kibana" {}
 
 data "kibana_index" "main" {
-  filter = {
-    name = "title"
+  filter {
+    name   = "title"
     values = ["logstash-*"]
   }
 }
 
 resource "kibana_search" "china" {
-  name 	        = "Chinese origin - errors"
+  name            = "Chinese origin - errors"
   description     = "Errors occured when source was from china"
   display_columns = ["_source"]
   sort_by_columns = ["@timestamp"]
-  search = {
-    index   = "${data.kibana_index.main.id}"
-    filters = [
-      {
-        match = {
-          field_name = "geo.src"
-          query      = "CN"
-          type       = "phrase"
-        },
-      },
-      {
-        match = {
-          field_name = "@tags"
-          query      = "error"
-          type       = "phrase"
-        }
+
+  search {
+    index = "${data.kibana_index.main.id}"
+
+    filters {
+      match {
+        field_name = "geo.src"
+        query      = "CN"
+        type       = "phrase"
       }
-    ]
+    }
+
+    filters {
+      match {
+        field_name = "@tags"
+        query      = "error"
+        type       = "phrase"
+      }
+    }
   }
 }
 
 resource "kibana_visualization" "china_viz" {
-	name 	            = "Chinese visualization - updated"
-	description         = "Chinese error visualization - updated"
-	saved_search_id     = "${kibana_search.china.id}"
-	visualization_state = <<EOF
+  name            = "Chinese visualization - updated"
+  description     = "Chinese error visualization - updated"
+  saved_search_id = "${kibana_search.china.id}"
+
+  visualization_state = <<EOF
 {
   "title": "Chinese search",
   "type": "gauge",
@@ -157,9 +158,10 @@ EOF
 }
 
 resource "kibana_dashboard" "china_dash" {
-	name = "Chinese dashboard"
-	description = "Chinese dashboard description"
-	panels_json = <<EOF
+  name        = "Chinese dashboard"
+  description = "Chinese dashboard description"
+
+  panels_json = <<EOF
 [
   {
     "gridData": {

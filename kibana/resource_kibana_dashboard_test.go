@@ -2,10 +2,11 @@ package kibana
 
 import (
 	"fmt"
-	"github.com/ewilde/go-kibana"
+	"testing"
+
+	kibana "github.com/ewilde/go-kibana"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
-	"testing"
 
 	"strings"
 )
@@ -211,17 +212,15 @@ resource "kibana_search" "china" {
 	description     = "Chinese search results"
 	display_columns = ["_source"]
 	sort_by_columns = ["@timestamp"]
-	search = {
+	search {
 		index   = "%s"
-		filters = [
-			{
-				match = {
+		filters {
+				match {
 					field_name = "geo.src"
 					query      = "CN"
 					type       = "phrase"
 				}
-			}
-		]
+		}
 	}
 }
 
@@ -339,29 +338,31 @@ EOF
 }
 
 resource "kibana_search" "china" {
-	name 	        = "Chinese search"
-	description     = "Chinese search results"
-	display_columns = ["_source"]
-	sort_by_columns = ["@timestamp"]
-	search = {
-		index   = "%s"
-		filters = [
-			{
-				match = {
-					field_name = "geo.src"
-					query      = "CN"
-					type       = "phrase"
-				}
-			}
-		]
-	}
+  name            = "Chinese search"
+  description     = "Chinese search results"
+  display_columns = ["_source"]
+  sort_by_columns = ["@timestamp"]
+
+  search {
+    index = "%s"
+
+    filters {
+      match {
+        field_name = "geo.src"
+        query      = "CN"
+        type       = "phrase"
+      }
+    }
+  }
 }
 
 %s
 `
-const dataKibanaIndex = `data "kibana_index" "main" {
-	filter = {
-		name = "title"
-		values = ["logstash-*"]
-	}
-}`
+const dataKibanaIndex = `
+data "kibana_index" "main" {
+  filter {
+    name   = "title"
+    values = ["logstash-*"]
+  }
+}
+`

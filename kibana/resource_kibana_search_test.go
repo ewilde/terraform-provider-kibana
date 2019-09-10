@@ -2,10 +2,11 @@ package kibana
 
 import (
 	"fmt"
-	"github.com/ewilde/go-kibana"
+	"testing"
+
+	kibana "github.com/ewilde/go-kibana"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
-	"testing"
 
 	"strings"
 )
@@ -53,7 +54,7 @@ func TestAccKibanaSearchApi(t *testing.T) {
 				),
 			},
 			{
-				Config: testSearchUpdate[testAccProvider.Meta().(*kibana.KibanaClient).Config.KibanaType],
+				Config: testSearchUpdate[testConfig.KibanaType],
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckKibanaSearchExists("kibana_search.china"),
 					resource.TestCheckResourceAttr("kibana_search.china", "name", "Chinese search - errors"),
@@ -160,22 +161,22 @@ func testAccCheckKibanaSearchExists(resourceKey string) resource.TestCheckFunc {
 
 const testCreateSearchConfig = `
 resource "kibana_search" "china" {
-	name 	        = "Chinese search"
-	description     = "Chinese search results"
-	display_columns = ["_source"]
-	sort_by_columns = ["@timestamp"]
-	search = {
-		index   = "%s"
-		filters = [
-			{
-				match = {
-					field_name = "geo.src"
-					query      = "CN"
-					type       = "phrase"
-				}
-			}
-		]
-	}
+  name            = "Chinese search"
+  description     = "Chinese search results"
+  display_columns = ["_source"]
+  sort_by_columns = ["@timestamp"]
+
+  search {
+    index = "%s"
+
+    filters {
+      match {
+        field_name = "geo.src"
+        query      = "CN"
+        type       = "phrase"
+      }
+    }
+  }
 }
 
 %s
@@ -183,44 +184,46 @@ resource "kibana_search" "china" {
 
 const testCreateSearchConfigMeta = `
 resource "kibana_search" "china" {
-	name 	        = "Chinese search with filter meta"
-	description     = "Chinese search results with filter meta"
-	display_columns = ["_source"]
-	sort_by_columns = ["@timestamp"]
-	search = {
-		index   = "%s"
-		filters = [
-			{
-				match = {
-					field_name = "geo.src"
-					query      = "CN"
-					type       = "phrase"
-				},
+  name            = "Chinese search with filter meta"
+  description     = "Chinese search results with filter meta"
+  display_columns = ["_source"]
+  sort_by_columns = ["@timestamp"]
 
-				meta = {
-					index = "%s"
-					alias = "China"
-					type  = "phrase"
-                    key   = "geo.src"
-					value = "CN"
- 					params = {
-						query = "CN"
-						type  = "phrase"
-					}
-				}
-			},
-			{
-				exists =  "geoip.region_name",
+  search {
+    index = "%s"
 
-				meta = {
-					index = "%s"
-					type  = "exists"
-                    key   = "geoip.region_name"
-					value = "exists"
-				}
-			}
-		]
-	}
+    filters {
+      match {
+        field_name = "geo.src"
+        query      = "CN"
+        type       = "phrase"
+      }
+
+      meta {
+        index = "%s"
+        alias = "China"
+        type  = "phrase"
+        key   = "geo.src"
+        value = "CN"
+
+        params {
+          query = "CN"
+          type  = "phrase"
+        }
+      }
+    }
+
+    filters {
+      exists = "geoip.region_name"
+
+      meta {
+        index = "%s"
+        type  = "exists"
+        key   = "geoip.region_name"
+        value = "exists"
+      }
+    }
+  }
 }
 
 %s
@@ -231,7 +234,7 @@ resource "kibana_search" "china" {
 	description     = "Chinese search results with query"
 	display_columns = ["_source"]
 	sort_by_columns = ["@timestamp"]
-	search = {
+	search {
 		index   = "%s"
 		query   = "geo.src:china"
 	}
@@ -242,29 +245,30 @@ resource "kibana_search" "china" {
 
 const testUpdateSearchConfig = `
 resource "kibana_search" "china" {
-	name 	        = "Chinese search - errors"
-	description     = "Chinese errors"
-	display_columns = ["_source"]
-	sort_by_columns = ["@timestamp"]
-	search = {
-		index   = "%s"
-		filters = [
-			{
-				match = {
-					field_name = "geo.src"
-					query      = "CN"
-					type       = "phrase"
-				},
-			},
-			{
-				match = {
-					field_name = "@tags"
-					query      = "error"
-					type       = "phrase"
-				}
-			}
-		]
-	}
+  name            = "Chinese search - errors"
+  description     = "Chinese errors"
+  display_columns = ["_source"]
+  sort_by_columns = ["@timestamp"]
+
+  search {
+    index = "%s"
+
+    filters {
+      match {
+        field_name = "geo.src"
+        query      = "CN"
+        type       = "phrase"
+      }
+    }
+
+    filters {
+      match {
+        field_name = "@tags"
+        query      = "error"
+        type       = "phrase"
+      }
+    }
+  }
 }
 
 %s

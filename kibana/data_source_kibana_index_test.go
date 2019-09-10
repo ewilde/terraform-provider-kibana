@@ -2,12 +2,13 @@ package kibana
 
 import (
 	"fmt"
-	"github.com/ewilde/go-kibana"
+	"strings"
+	"testing"
+
+	kibana "github.com/ewilde/go-kibana"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/pkg/errors"
-	"strings"
-	"testing"
 )
 
 var testDataSource = map[kibana.KibanaType]string{
@@ -87,7 +88,7 @@ func testAccDataSourceKibanaIndexLogz(dataSource string) resource.TestCheckFunc 
 
 const testAccDataSourceKibanaConfig = `
 data "kibana_index" "basic" {
-	filter = {
+	filter {
 		name = "title"
 		values = ["logstash-*"]
 	}
@@ -96,7 +97,7 @@ data "kibana_index" "basic" {
 
 const testAccDataSourceKibanaConfigLogzio = `
 data "kibana_index" "basic" {
-	filter = {
+	filter {
 		name = "id"
 		values = ["[logzioCustomerIndex]YYMMDD"]
 	}
