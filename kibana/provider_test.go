@@ -4,20 +4,21 @@ import (
 	"testing"
 
 	"fmt"
-	"github.com/ewilde/go-kibana"
+	"strconv"
+	"strings"
+
+	kibana "github.com/ewilde/go-kibana"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
-	"strconv"
-	"strings"
 )
 
 var testAccProviders map[string]terraform.ResourceProvider
-var testAccProvider *KibanaProvider
+var testAccProvider *schema.Provider
 var testConfig *kibana.Config
 
 func init() {
-	testAccProvider = Provider().(*KibanaProvider)
+	testAccProvider = Provider().(*schema.Provider)
 	testAccProviders = map[string]terraform.ResourceProvider{
 		"kibana": testAccProvider,
 	}
