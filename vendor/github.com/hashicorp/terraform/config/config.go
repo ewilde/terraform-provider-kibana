@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 
+	hcl2 "github.com/hashicorp/hcl2/hcl"
 	"github.com/hashicorp/hil/ast"
 	"github.com/hashicorp/terraform/helper/hilmapstructure"
 	"github.com/hashicorp/terraform/plugin/discovery"
@@ -230,7 +231,10 @@ func (r *Resource) Count() (int, error) {
 
 	v, err := strconv.ParseInt(count, 0, 0)
 	if err != nil {
-		return 0, err
+		return 0, fmt.Errorf(
+			"cannot parse %q as an integer",
+			count,
+		)
 	}
 
 	return int(v), nil
@@ -246,35 +250,6 @@ func (r *Resource) Id() string {
 	default:
 		panic(fmt.Errorf("unknown resource mode %s", r.Mode))
 	}
-}
-
-// ProviderFullName returns the full name of the provider for this resource,
-// which may either be specified explicitly using the "provider" meta-argument
-// or implied by the prefix on the resource type name.
-func (r *Resource) ProviderFullName() string {
-	return ResourceProviderFullName(r.Type, r.Provider)
-}
-
-// ResourceProviderFullName returns the full (dependable) name of the
-// provider for a hypothetical resource with the given resource type and
-// explicit provider string. If the explicit provider string is empty then
-// the provider name is inferred from the resource type name.
-func ResourceProviderFullName(resourceType, explicitProvider string) string {
-	if explicitProvider != "" {
-		// check for an explicit provider name, or return the original
-		parts := strings.SplitAfter(explicitProvider, "provider.")
-		return parts[len(parts)-1]
-	}
-
-	idx := strings.IndexRune(resourceType, '_')
-	if idx == -1 {
-		// If no underscores, the resource name is assumed to be
-		// also the provider name, e.g. if the provider exposes
-		// only a single resource of each type.
-		return resourceType
-	}
-
-	return resourceType[:idx]
 }
 
 // Validate does some basic semantic checking of the configuration.
@@ -415,10 +390,17 @@ func (c *Config) Validate() tfdiags.Diagnostics {
 		if p.Version != "" {
 			_, err := discovery.ConstraintStr(p.Version).Parse()
 			if err != nil {
-				diags = diags.Append(fmt.Errorf(
-					"provider.%s: invalid version constraint %q: %s",
-					name, p.Version, err,
-				))
+				diags = diags.Append(&hcl2.Diagnostic{
+					Severity: hcl2.DiagError,
+					Summary:  "Invalid provider version constraint",
+					Detail: fmt.Sprintf(
+						"The value %q given for provider.%s is not a valid version constraint.",
+						p.Version, name,
+					),
+					// TODO: include a "Subject" source reference in here,
+					// once the config loader is able to retain source
+					// location information.
+				})
 			}
 		}
 
@@ -849,7 +831,7 @@ func (c *Config) Validate() tfdiags.Diagnostics {
 					// a count might dynamically be set to something
 					// other than 1 and thus splat syntax is still needed
 					// to be safe.
-					if r.RawCount != nil && r.RawCount.Raw != nil && r.RawCount.Raw["count"] != "1" {
+					if r.RawCount != nil && r.RawCount.Raw != nil && r.RawCount.Raw["count"] != "1" && rv.Field != "count" {
 						diags = diags.Append(tfdiags.SimpleWarning(fmt.Sprintf(
 							"output %q: must use splat syntax to access %s attribute %q, because it has \"count\" set; use %s.*.%s to obtain a list of the attributes across all instances",
 							o.Name,

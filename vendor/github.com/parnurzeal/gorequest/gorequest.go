@@ -1042,6 +1042,7 @@ func (s *SuperAgent) getResponseBytes() (Response, []byte, []error) {
 	// Log details of this request
 	if s.Debug {
 		dump, err := httputil.DumpRequest(req, true)
+		s.logger.SetPrefix("[http] ")
 		if err != nil {
 			s.logger.Println("Error:", err)
 		} else {

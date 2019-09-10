@@ -4,12 +4,15 @@ import (
 	"bytes"
 	"compress/gzip"
 	"crypto/md5"
+	"crypto/rsa"
 	"crypto/sha1"
 	"crypto/sha256"
 	"crypto/sha512"
+	"crypto/x509"
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
+	"encoding/pem"
 	"fmt"
 	"io/ioutil"
 	"math"
@@ -38,6 +41,20 @@ func stringSliceToVariableValue(values []string) []ast.Variable {
 	for index, value := range values {
 		output[index] = ast.Variable{
 			Type:  ast.TypeString,
+			Value: value,
+		}
+	}
+	return output
+}
+
+// listVariableSliceToVariableValue converts a list of lists into the value
+// required to be returned from interpolation functions which return TypeList.
+func listVariableSliceToVariableValue(values [][]ast.Variable) []ast.Variable {
+	output := make([]ast.Variable, len(values))
+
+	for index, value := range values {
+		output[index] = ast.Variable{
+			Type:  ast.TypeList,
 			Value: value,
 		}
 	}
@@ -103,6 +120,8 @@ func Funcs() map[string]ast.Function {
 		"pow":          interpolationFuncPow(),
 		"uuid":         interpolationFuncUUID(),
 		"replace":      interpolationFuncReplace(),
+		"reverse":      interpolationFuncReverse(),
+		"rsadecrypt":   interpolationFuncRsaDecrypt(),
 		"sha1":         interpolationFuncSha1(),
 		"sha256":       interpolationFuncSha256(),
 		"sha512":       interpolationFuncSha512(),
@@ -112,6 +131,7 @@ func Funcs() map[string]ast.Function {
 		"split":        interpolationFuncSplit(),
 		"substr":       interpolationFuncSubstr(),
 		"timestamp":    interpolationFuncTimestamp(),
+		"timeadd":      interpolationFuncTimeAdd(),
 		"title":        interpolationFuncTitle(),
 		"transpose":    interpolationFuncTranspose(),
 		"trimspace":    interpolationFuncTrimSpace(),
@@ -936,6 +956,25 @@ func interpolationFuncReplace() ast.Function {
 	}
 }
 
+// interpolationFuncReverse implements the "reverse" function that does list reversal
+func interpolationFuncReverse() ast.Function {
+	return ast.Function{
+		ArgTypes:   []ast.Type{ast.TypeList},
+		ReturnType: ast.TypeList,
+		Variadic:   false,
+		Callback: func(args []interface{}) (interface{}, error) {
+			inputList := args[0].([]ast.Variable)
+
+			reversedList := make([]ast.Variable, len(inputList))
+			for idx := range inputList {
+				reversedList[len(inputList)-1-idx] = inputList[idx]
+			}
+
+			return reversedList, nil
+		},
+	}
+}
+
 func interpolationFuncLength() ast.Function {
 	return ast.Function{
 		ArgTypes:   []ast.Type{ast.TypeAny},
@@ -1504,6 +1543,29 @@ func interpolationFuncTimestamp() ast.Function {
 	}
 }
 
+func interpolationFuncTimeAdd() ast.Function {
+	return ast.Function{
+		ArgTypes: []ast.Type{
+			ast.TypeString, // input timestamp string in RFC3339 format
+			ast.TypeString, // duration to add to input timestamp that should be parsable by time.ParseDuration
+		},
+		ReturnType: ast.TypeString,
+		Callback: func(args []interface{}) (interface{}, error) {
+
+			ts, err := time.Parse(time.RFC3339, args[0].(string))
+			if err != nil {
+				return nil, err
+			}
+			duration, err := time.ParseDuration(args[1].(string))
+			if err != nil {
+				return nil, err
+			}
+
+			return ts.Add(duration).Format(time.RFC3339), nil
+		},
+	}
+}
+
 // interpolationFuncTitle implements the "title" function that returns a copy of the
 // string in which first characters of all the words are capitalized.
 func interpolationFuncTitle() ast.Function {
@@ -1549,7 +1611,7 @@ func interpolationFuncSubstr() ast.Function {
 				return nil, fmt.Errorf("length should be a non-negative integer")
 			}
 
-			if offset > len(str) {
+			if offset > len(str) || offset < 0 {
 				return nil, fmt.Errorf("offset cannot be larger than the length of the string")
 			}
 
@@ -1654,6 +1716,46 @@ func interpolationFuncAbs() ast.Function {
 		ReturnType: ast.TypeFloat,
 		Callback: func(args []interface{}) (interface{}, error) {
 			return math.Abs(args[0].(float64)), nil
+		},
+	}
+}
+
+// interpolationFuncRsaDecrypt implements the "rsadecrypt" function that does
+// RSA decryption.
+func interpolationFuncRsaDecrypt() ast.Function {
+	return ast.Function{
+		ArgTypes:   []ast.Type{ast.TypeString, ast.TypeString},
+		ReturnType: ast.TypeString,
+		Callback: func(args []interface{}) (interface{}, error) {
+			s := args[0].(string)
+			key := args[1].(string)
+
+			b, err := base64.StdEncoding.DecodeString(s)
+			if err != nil {
+				return "", fmt.Errorf("Failed to decode input %q: cipher text must be base64-encoded", s)
+			}
+
+			block, _ := pem.Decode([]byte(key))
+			if block == nil {
+				return "", fmt.Errorf("Failed to read key %q: no key found", key)
+			}
+			if block.Headers["Proc-Type"] == "4,ENCRYPTED" {
+				return "", fmt.Errorf(
+					"Failed to read key %q: password protected keys are\n"+
+						"not supported. Please decrypt the key prior to use.", key)
+			}
+
+			x509Key, err := x509.ParsePKCS1PrivateKey(block.Bytes)
+			if err != nil {
+				return "", err
+			}
+
+			out, err := rsa.DecryptPKCS1v15(nil, x509Key, b)
+			if err != nil {
+				return "", err
+			}
+
+			return string(out), nil
 		},
 	}
 }

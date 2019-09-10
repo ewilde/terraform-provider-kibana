@@ -7,7 +7,8 @@ import (
 	"testing"
 
 	"github.com/parnurzeal/gorequest"
-	"gopkg.in/ory-am/dockertest.v3"
+
+	"github.com/ory/dockertest"
 )
 
 type testContext struct {

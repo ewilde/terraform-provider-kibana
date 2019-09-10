@@ -11,21 +11,23 @@ var regexpDotBeforeDigit = regexp.MustCompile(`([^.\d]+)`)
 var regexpMultipleDots = regexp.MustCompile(`\.{2,}`)
 
 var specialForms = map[string]int{
-	"dev":   -6,
-	"alpha": -5,
-	"a":     -5,
-	"beta":  -4,
-	"b":     -4,
-	"RC":    -3,
-	"rc":    -3,
-	"#":     -2,
-	"p":     1,
-	"pl":    1,
+	"SNAPSHOT": -7,
+	"snapshot": -7,
+	"dev":      -6,
+	"alpha":    -5,
+	"a":        -5,
+	"beta":     -4,
+	"b":        -4,
+	"RC":       -3,
+	"rc":       -3,
+	"#":        -2,
+	"p":        1,
+	"pl":       1,
 }
 
 var unknownForm int = -7
 
-// Compares two version number strings, for a particular relationship
+// Compare compares two version number strings, for a particular relationship
 //
 // Usage
 //     version.Compare("2.3.4", "v3.1.2", "<")
@@ -40,7 +42,7 @@ func Compare(version1, version2, operator string) bool {
 	return CompareNormalized(version1N, version2N, operator)
 }
 
-// Compares two normalizated version number strings, for a particular relationship
+// CompareNormalized compares two normalizated version number strings, for a particular relationship
 //
 // The function first replaces _, - and + with a dot . in the version strings
 // and also inserts dots . before and after any non number so that for example
@@ -82,7 +84,7 @@ func CompareNormalized(version1, version2, operator string) bool {
 	return false
 }
 
-// Compares two normalizated version number strings
+// CompareSimple compares two normalizated version number strings
 //
 // Just the same of CompareVersion but return a int result, 0 if both version
 // are equal, 1 if the right side is bigger and -1 if the right side is lower

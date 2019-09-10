@@ -3,10 +3,11 @@ package kibana
 import (
 	"errors"
 	"fmt"
-	"github.com/fsouza/go-dockerclient"
-	"gopkg.in/ory-am/dockertest.v3"
 	"log"
 	"time"
+
+	"github.com/ory/dockertest"
+	docker "github.com/ory/dockertest/docker"
 )
 
 var imageNameFromVersion = map[string]string{
