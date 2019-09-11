@@ -35,7 +35,7 @@ type UpdateSearchRequest struct {
 type Search struct {
 	Id         string            `json:"id"`
 	Type       string            `json:"type"`
-	Version    int               `json:"version"`
+	Version    version           `json:"version"`
 	Attributes *SearchAttributes `json:"attributes"`
 }
 
@@ -52,7 +52,7 @@ type SearchAttributes struct {
 type searchReadResult553 struct {
 	Id      string            `json:"_id"`
 	Type    string            `json:"_type"`
-	Version int               `json:"_version"`
+	Version version           `json:"_version"`
 	Source  *SearchAttributes `json:"_source"`
 }
 

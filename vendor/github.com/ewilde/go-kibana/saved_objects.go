@@ -28,7 +28,7 @@ type SavedObjectResponse struct {
 type SavedObject struct {
 	Id         string                 `json:"id"`
 	Type       string                 `json:"type"`
-	Version    int                    `json:"version"`
+	Version    version                `json:"version"`
 	Attributes map[string]interface{} `json:"attributes"`
 }
 

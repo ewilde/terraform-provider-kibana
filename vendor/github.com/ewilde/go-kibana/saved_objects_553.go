@@ -50,15 +50,15 @@ func (api *savedObjectsClient553) GetByType(request *SavedObjectRequest) (*Saved
 
 	var savedObjects []*SavedObject
 	for _, item := range response.Hits.Hits {
-		version := 1
+		objectVersion := version("1")
 		if val, ok := item.Source["version"]; ok {
-			version = val.(int)
+			objectVersion = val.(version)
 		}
 
 		savedObjects = append(savedObjects, &SavedObject{
 			Type:       item.Type,
 			Id:         item.Id,
-			Version:    version,
+			Version:    objectVersion,
 			Attributes: item.Source,
 		})
 	}

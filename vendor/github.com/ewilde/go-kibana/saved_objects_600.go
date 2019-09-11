@@ -4,7 +4,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/mcuadros/go-version"
+
+	goversion "github.com/mcuadros/go-version"
 )
 
 type savedObjectsClient600 struct {
@@ -39,7 +40,7 @@ func (api *savedObjectsClient600) GetByType(request *SavedObjectRequest) (*Saved
 }
 
 func (api *savedObjectsClient600) getSavedObjectsPath() string {
-	if version.Compare(api.config.KibanaVersion, "6.3.0", ">=") {
+	if goversion.Compare(api.config.KibanaVersion, "6.3.0", ">=") {
 		return api.config.KibanaBaseUri + savedObjectsPath + "_find"
 
 	}
