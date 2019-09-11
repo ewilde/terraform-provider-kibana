@@ -2,10 +2,12 @@ package kibana
 
 import (
 	"fmt"
-	"github.com/ewilde/go-kibana"
+	"log"
+
+	kibana "github.com/ewilde/go-kibana"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/structure"
-	"log"
+	goversion "github.com/mcuadros/go-version"
 )
 
 func resourceKibanaVisualization() *schema.Resource {
@@ -50,7 +52,8 @@ func resourceKibanaVisualization() *schema.Resource {
 }
 
 func resourceKibanaVisualizationCreate(d *schema.ResourceData, meta interface{}) error {
-	visualizationRequest, err := createKibanaVisualizationCreateRequestFromResourceData(d)
+	version := meta.(*kibana.KibanaClient).Config.KibanaVersion
+	visualizationRequest, err := createKibanaVisualizationCreateRequestFromResourceData(d, version)
 	if err != nil {
 		return fmt.Errorf("failed to create kibana visualization api: %v error: %v", visualizationRequest, err)
 	}
@@ -78,21 +81,29 @@ func resourceKibanaVisualizationRead(d *schema.ResourceData, meta interface{}) e
 
 	d.Set("name", response.Attributes.Title)
 	d.Set("description", response.Attributes.Description)
-	d.Set("saved_search_id", response.Attributes.SavedSearchId)
+	version := meta.(*kibana.KibanaClient).Config.KibanaVersion
+	if goversion.Compare(version, "7.0.0", "<") {
+		d.Set("saved_search_id", response.Attributes.SavedSearchId)
+	} else {
+		if len(response.References) == 1 {
+			d.Set("saved_search_id", response.References[0].Id)
+		}
+	}
 	d.Set("visualization_state", response.Attributes.VisualizationState)
 
 	return nil
 }
 
 func resourceKibanaVisualizationUpdate(d *schema.ResourceData, meta interface{}) error {
-	visualizationRequest, err := createKibanaVisualizationCreateRequestFromResourceData(d)
+	version := meta.(*kibana.KibanaClient).Config.KibanaVersion
+	visualizationRequest, err := createKibanaVisualizationCreateRequestFromResourceData(d, version)
 	if err != nil {
 		return fmt.Errorf("failed to update kibana visualization api: %v error: %v", visualizationRequest, err)
 	}
 
 	log.Printf("[INFO] Creating Kibana visualization %s", visualizationRequest.Attributes.Title)
 
-	_, err = meta.(*kibana.KibanaClient).Visualization().Update(d.Id(), &kibana.UpdateVisualizationRequest{Attributes: visualizationRequest.Attributes})
+	_, err = meta.(*kibana.KibanaClient).Visualization().Update(d.Id(), &kibana.UpdateVisualizationRequest{Attributes: visualizationRequest.Attributes, References: visualizationRequest.References})
 
 	if err != nil {
 		return fmt.Errorf("failed to update kibana saved visualization: %v error: %v", visualizationRequest, err)
@@ -115,11 +126,11 @@ func resourceKibanaVisualizationDelete(d *schema.ResourceData, meta interface{})
 	return nil
 }
 
-func createKibanaVisualizationCreateRequestFromResourceData(d *schema.ResourceData) (*kibana.CreateVisualizationRequest, error) {
+func createKibanaVisualizationCreateRequestFromResourceData(d *schema.ResourceData, version string) (*kibana.CreateVisualizationRequest, error) {
 	return kibana.NewVisualizationRequestBuilder().
 		WithTitle(readStringFromResource(d, "name")).
 		WithDescription(readStringFromResource(d, "description")).
 		WithSavedSearchId(readStringFromResource(d, "saved_search_id")).
 		WithVisualizationState(readStringFromResource(d, "visualization_state")).
-		Build()
+		Build(version)
 }
