@@ -75,18 +75,18 @@ func Provider() terraform.ResourceProvider {
 					DefaultFunc: envDefaultFuncWithDefault(kibana.EnvLogzMfaSecret, ""),
 					Description: "The logz.io MFA secret if the account has it enabled.",
 				},
-        "kibana_insecure": {
+				"kibana_insecure": {
 					Type:        schema.TypeBool,
 					Default:     false,
 					Optional:    true,
 					Description: "Disable SSL verification",
-			  },
+				},
 			},
 
 			DataSourcesMap: map[string]*schema.Resource{
 				"kibana_index": dataSourceKibanaIndex(),
 			},
-      
+
 			ResourcesMap: map[string]*schema.Resource{
 				"kibana_search":        resourceKibanaSearch(),
 				"kibana_visualization": resourceKibanaVisualization(),
@@ -130,14 +130,14 @@ func GetEnvVarOrDefaultBool(key string, defaultValue bool) bool {
 
 func (p *KibanaProvider) providerConfigure(d *schema.ResourceData) (interface{}, error) {
 	var err error
-  
+
 	p.once.Do(func() {
 		config := &kibana.Config{
 			ElasticSearchPath: d.Get("elastic_search_path").(string),
 			KibanaBaseUri:     d.Get("kibana_uri").(string),
 			KibanaType:        kibana.ParseKibanaType(d.Get("kibana_type").(string)),
 			KibanaVersion:     d.Get("kibana_version").(string),
-  		Insecure:          d.Get("kibana_insecure").(bool),
+			Insecure:          d.Get("kibana_insecure").(bool),
 		}
 
 		client := kibana.NewClient(config)
