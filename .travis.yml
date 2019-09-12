@@ -1,12 +1,12 @@
 language: go
 go:
 - 1.10.x
-services:
-- docker
 install:
-- go get github.com/kardianos/govendor
+  - go get github.com/kardianos/govendor
+services:
+  - docker
 script:
-- make travisbuild
+  - make travisbuild
 deploy:
   - provider: script
     skip_cleanup: true
@@ -16,11 +16,12 @@ deploy:
       condition: $TRAVIS_OS_NAME = linux
 env:
   matrix:
-  - ELK_VERSION=5.5.3   KIBANA_TYPE=KibanaTypeVanilla   KIBANA_USERNAME=elastic             KIBANA_PASSWORD=changeme  ELASTIC_PACK=
-  - ELK_VERSION=6.3.2   KIBANA_TYPE=KibanaTypeLogzio    KIBANA_URI=https://app-eu.logz.io   ELASTIC_SEARCH_PATH=/kibana/elasticsearch/logzioCustomerKibanaIndex
-  - ELK_VERSION=6.2.1   KIBANA_TYPE=KibanaTypeVanilla
-  - ELK_VERSION=6.3.2   KIBANA_TYPE=KibanaTypeVanilla
-  - ELK_VERSION=6.4.1   KIBANA_TYPE=KibanaTypeVanilla
+  - ELK_VERSION=5.5.3   KIBANA_TYPE=KibanaTypeVanilla   KIBANA_USERNAME=elastic             KIBANA_PASSWORD=changeme  ELASTIC_PACK=  MAKELOGS_VERSION=makelogs@4.0.3
+  - ELK_VERSION=6.3.2   KIBANA_TYPE=KibanaTypeLogzio    KIBANA_URI=https://app-eu.logz.io   ELASTIC_SEARCH_PATH=/kibana/elasticsearch/logzioCustomerKibanaIndex  MAKELOGS_VERSION=makelogs@4.0.3
+  - ELK_VERSION=6.2.1   KIBANA_TYPE=KibanaTypeVanilla  MAKELOGS_VERSION=makelogs@4.0.3
+  - ELK_VERSION=6.3.2   KIBANA_TYPE=KibanaTypeVanilla  MAKELOGS_VERSION=makelogs@4.0.3
+  - ELK_VERSION=6.4.1   KIBANA_TYPE=KibanaTypeVanilla  MAKELOGS_VERSION=makelogs@4.0.3
+  - ELK_VERSION=7.3.1   KIBANA_TYPE=KibanaTypeVanilla  MAKELOGS_VERSION=@elastic/makelogs@4.5.0
   global:
   - secure: uBzanAETOmx2YE00DATZXQOV7HO5dNDk7+mW84GJMRPZnUPsc9EJuWRLkygbHg6d93a/dtUpTTfqjJFDLKkNEnl8AEy3Spv431CBLris2K2g0R/UM9zr7rW1u41UW/OvWiX9jCbd+TTdX8s9cX5MA6l43uc1S/7duFgJwBWjwuWXu/x4HJ2TIimnXtRrdZE6xhli/oGjqptnca+LsaNw9tic/mBCo20MemreSiI7I0REokayiUkIuUCHFPK1jFSOIijcMmUgO3p3sfhHdFj9vumxELO620vkOm2eKR4I1uTbyy3tew7WCEKf1v5fElWREkeq87oklJ9jND+t4hWMgRHpEMYtxvcbDIq0uaDbWIcnk7clDnixGvh1oJsEW6bpZ5JIYyMVvM37p+g5QFcOZ7LD7Vgz8yo3shraZufygh7hoZQSgWbhLA5OrcAJFvfXDbGK8KoiZ4djwAhtGlExcRejsxx1csurJe68y3/7K3IAhN5xGHVr+LZWkK4Fr7u407tB9z29kkeIIf06LRIopKE7547dWmFeU+andzY0Ia+lwPce9FVhEqxi3TBM9V83f5rADRqFjXaC5IDXOLKSalJPAVdsW1a42VDIFO16g1/fnvXV7k+83yR/ebNNyS6TUESUnctqiOKpE3WaQoo/LvSxrYNZi4qzroKNiUbSMYk=
   - secure: Ou7nLxObP8fyS4E6spoV73wtlE63GkBzhfReXPjTAxDmbUX0KYyYZnvNCejknvT+aAmXNvZkw+x8+ze98DqAu5FRdyhUrvmpVgjImk31VBHEBlbnexsRP+pnXXo4RxpdJ3bv+SxXORSJZgMFK0qZOUqcxi4qyoAArJlkaVGWRYgQfw9g6J2/hb7sPE8bL/A1X9e9V4ew3x49v5p5K3SjTyeGpD0wFM0hD7+z9IMHuNTNjAQ7bmO7vlqRMM6O+qI7pEUie4vHEomexDFY+smiYq4w8vhP3DH2z1CIFPVVjymXi3LAn0nVTH+DGlrDQwQn4GfC6CN8P7r68uHzl0BDOiipvafcJ64EgAsvig7AcmsDeRfemf+qLYXmhapYKqaHJ7s/l+IuNgRiD7/ceOvG1f/hLrGYoOXE9ZbZ0nKSEtxltdc/mseaZGmbyMYr/eh7NrO+UVhUgqFYnp8N0ZTTiCT9fBopIbDAxWFIM1fDj9tu5YtEY21eILQ8dXhxpUHH0r+UKjpNVZxHxMAee5Kyf7bN+WdjdhfBq33YQ7WzouY+B50XvX8gRYheFhNDl9Tv5k4sgzG4oZiu2MeLnv8Bp8NmRY8+0aRBV58WyF6dYS4t6OpJjL/kmGswQCrif069BtNqVQsRM2P8HzhdkqA1z4lFxLaZDUGCAeeLhlDaaA8=

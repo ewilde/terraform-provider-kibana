@@ -1,11 +1,13 @@
 package kibana
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/url"
 	"os"
 	"reflect"
+	"strconv"
 	"strings"
 
 	"github.com/google/go-querystring/query"
@@ -24,6 +26,7 @@ const EnvLogzMfaSecret = "LOGZ_MFA_SECRET"
 const DefaultKibanaUri = "http://localhost:5601"
 const DefaultElasticSearchPath = "/es_admin/.kibana"
 const DefaultKibanaVersion6 = "6.0.0"
+const DefaultKibanaVersion7 = "7.3.1"
 const DefaultLogzioVersion = "6.3.2"
 const DefaultKibanaVersion553 = "5.5.3"
 const DefaultKibanaVersion = DefaultKibanaVersion6
@@ -53,6 +56,26 @@ func ParseKibanaType(value string) KibanaType {
 	return kibanaType
 }
 
+type version string
+
+func (v *version) UnmarshalJSON(data []byte) error {
+	var tmp int
+	err := json.Unmarshal(data, &tmp)
+	if err == nil {
+		*v = version(strconv.Itoa(tmp))
+		return nil
+	} else {
+		var tmp string
+		err = json.Unmarshal(data, &tmp)
+		if err != nil {
+			return err
+		} else {
+			*v = version(tmp)
+		}
+	}
+	return nil
+}
+
 type Config struct {
 	Debug             bool
 	DefaultIndexId    string
@@ -69,9 +92,9 @@ type KibanaClient struct {
 }
 
 type createResourceResult553 struct {
-	Id      string `json:"_id"`
-	Type    string `json:"_type"`
-	Version int    `json:"_version"`
+	Id      string  `json:"_id"`
+	Type    string  `json:"_type"`
+	Version version `json:"_version"`
 }
 
 var indexClientFromVersion = map[string]func(kibanaClient *KibanaClient) IndexPatternClient{

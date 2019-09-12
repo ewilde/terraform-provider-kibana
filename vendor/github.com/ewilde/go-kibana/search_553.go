@@ -4,7 +4,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/satori/go.uuid"
+
+	uuid "github.com/satori/go.uuid"
 )
 
 type searchClient553 struct {

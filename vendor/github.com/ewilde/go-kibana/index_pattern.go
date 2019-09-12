@@ -57,14 +57,14 @@ type IndexPattern struct {
 type IndexPatternCreateResult struct {
 	Id         string                  `json:"id"`
 	Type       string                  `json:"type"`
-	Version    int                     `json:"version"`
+	Version    version                 `json:"version"`
 	Attributes *IndexPatternAttributes `json:"attributes"`
 }
 
 type IndexPatternCreateResult553 struct {
-	Id      string `json:"_id"`
-	Type    string `json:"_type"`
-	Version int    `json:"_version"`
+	Id      string  `json:"_id"`
+	Type    string  `json:"_type"`
+	Version version `json:"_version"`
 }
 
 type IndexPatternAttributes struct {
@@ -210,7 +210,7 @@ func (api *IndexPatternClient553) Create() (*IndexPatternCreateResult, error) {
 		return &IndexPatternCreateResult{
 			Id:      "logstash-*",
 			Type:    "index-pattern",
-			Version: 1,
+			Version: "1",
 		}, nil
 	} else if response.StatusCode >= 300 {
 		return nil, errors.New(fmt.Sprintf("Status: %d, %s", response.StatusCode, body))

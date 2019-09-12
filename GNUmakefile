@@ -36,7 +36,7 @@ docker-build: check-elk-version check-kibana-type
 		exit 1; \
 	fi
 	@if [ "$(KIBANA_TYPE)" = "KibanaTypeVanilla" ]; then \
-		cd docker/elasticsearch && docker build --build-arg ELK_VERSION=$(ELK_VERSION) --build-arg ELK_PACK=$(ELK_PACK) . -t elastic-local:$(ELK_VERSION); \
+		cd docker/elasticsearch && docker build --no-cache --build-arg ELK_VERSION=$(ELK_VERSION) --build-arg ELK_PACK=$(ELK_PACK) --build-arg MAKELOGS_VERSION=$(MAKELOGS_VERSION) . -t elastic-local:$(ELK_VERSION); \
 	fi
 
 start-kibana: docker-build

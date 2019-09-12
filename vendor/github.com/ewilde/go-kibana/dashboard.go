@@ -25,7 +25,7 @@ type UpdateDashboardRequest struct {
 type Dashboard struct {
 	Id         string               `json:"id"`
 	Type       string               `json:"type"`
-	Version    int                  `json:"version"`
+	Version    version              `json:"version"`
 	Attributes *DashboardAttributes `json:"attributes"`
 }
 
@@ -35,7 +35,7 @@ type DashboardAttributes struct {
 	Version               int                          `json:"version"`
 	PanelsJson            string                       `json:"panelsJSON"`
 	OptionsJson           string                       `json:"optionsJSON"`
-	UiStateJSON           string                       `json:"uiStateJSON"`
+	UiStateJSON           string                       `json:"uiStateJSON,omitempty"`
 	TimeRestore           bool                         `json:"timeRestore"`
 	KibanaSavedObjectMeta *SearchKibanaSavedObjectMeta `json:"kibanaSavedObjectMeta"`
 }
@@ -63,7 +63,7 @@ type dashboardClient553 struct {
 type dashboardReadResult553 struct {
 	Id      string               `json:"_id"`
 	Type    string               `json:"_type"`
-	Version int                  `json:"_version"`
+	Version version              `json:"_version"`
 	Source  *DashboardAttributes `json:"_source"`
 }
 
