@@ -113,7 +113,7 @@ func resourceKibanaVisualizationUpdate(d *schema.ResourceData, meta interface{})
 }
 
 func resourceKibanaVisualizationDelete(d *schema.ResourceData, meta interface{}) error {
-	log.Printf("[INFO] Creating Kibana visualization %s", d.Id())
+	log.Printf("[INFO] Deleting Kibana visualization %s", d.Id())
 
 	err := meta.(*kibana.KibanaClient).Visualization().Delete(d.Id())
 
