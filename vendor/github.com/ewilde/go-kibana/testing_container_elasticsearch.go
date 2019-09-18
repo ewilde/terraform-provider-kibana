@@ -4,10 +4,12 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"github.com/fsouza/go-dockerclient"
-	"github.com/parnurzeal/gorequest"
-	"gopkg.in/ory-am/dockertest.v3"
 	"log"
+	"os"
+
+	docker "github.com/fsouza/go-dockerclient"
+	"github.com/parnurzeal/gorequest"
+	dockertest "gopkg.in/ory-am/dockertest.v3"
 )
 
 type elasticSearchContainer struct {
@@ -18,9 +20,17 @@ type elasticSearchContainer struct {
 }
 
 func newElasticSearchContainer(pool *dockertest.Pool, elasticSearchVersion string) (*elasticSearchContainer, error) {
+	_, useXpackSecurity := os.LookupEnv("USE_XPACK_SECURITY")
 
 	envVars := []string{
 		"discovery.type=single-node",
+	}
+
+	if useXpackSecurity {
+		envVars = append(envVars,
+			"ELASTIC_PASSWORD=changeme",
+			"xpack.security.enabled=true",
+		)
 	}
 
 	options := &dockertest.RunOptions{
