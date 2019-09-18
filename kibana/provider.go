@@ -91,6 +91,7 @@ func Provider() terraform.ResourceProvider {
 				"kibana_search":        resourceKibanaSearch(),
 				"kibana_visualization": resourceKibanaVisualization(),
 				"kibana_dashboard":     resourceKibanaDashboard(),
+				"kibana_role":          resourceKibanaRole(),
 			},
 		},
 	}
