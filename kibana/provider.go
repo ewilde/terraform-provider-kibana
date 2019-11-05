@@ -60,7 +60,7 @@ func Provider() terraform.ResourceProvider {
 				"logzio_client_id": {
 					Type:        schema.TypeString,
 					Optional:    true,
-					DefaultFunc: envDefaultFuncWithDefault(kibana.EnvLogzClientId, ""),
+					DefaultFunc: envDefaultFuncWithDefault(kibana.EnvLogzClientId, kibana.DefaultLogzioClientId),
 					Description: "The logz.io client id used when connecting to logz.io",
 				},
 				"logzio_account_id": {

@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/parnurzeal/gorequest"
-	"gopkg.in/ory-am/dockertest.v3"
+	dockertest "gopkg.in/ory-am/dockertest.v3"
 )
 
 type testContext struct {
@@ -36,6 +36,10 @@ func getAuthForContainerVersion(version string, kibanaType KibanaType) Authentic
 	handler, ok := authForContainerVersion[version]
 	if !ok {
 		handler = authForContainerVersion[DefaultKibanaVersion6]
+	}
+	_, useXpackSecurity := os.LookupEnv("USE_XPACK_SECURITY")
+	if useXpackSecurity {
+		return &BasicAuthenticationHandler{"elastic", "changeme"}
 	}
 
 	if kibanaType == KibanaTypeLogzio {
