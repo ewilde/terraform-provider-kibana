@@ -28,6 +28,7 @@ const DefaultElasticSearchPath = "/es_admin/.kibana"
 const DefaultKibanaVersion6 = "6.0.0"
 const DefaultKibanaVersion7 = "7.3.1"
 const DefaultLogzioVersion = "6.3.2"
+const DefaultLogzioClientId = "kydHH8LqsLR6D6d2dlHTpPEdf0Bztz4c"
 const DefaultKibanaVersion553 = "5.5.3"
 const DefaultKibanaVersion = DefaultKibanaVersion6
 const DefaultKibanaIndexId = "logstash-*"
@@ -187,6 +188,21 @@ func getSavedObjectsClientFromVersion(version string, kibanaClient *KibanaClient
 	return savedObjectsClient(kibanaClient)
 }
 
+var roleClientFromVersion = map[string]func(kibanaClient *KibanaClient) RoleClient{
+	DefaultKibanaVersion6: func(kibanaClient *KibanaClient) RoleClient {
+		return &DefaultRoleClient{config: kibanaClient.Config, client: kibanaClient.client}
+	},
+}
+
+func getRoleClientFromVersion(version string, kibanaClient *KibanaClient) RoleClient {
+	savedObjectsClient, ok := roleClientFromVersion[version]
+	if !ok {
+		savedObjectsClient = roleClientFromVersion[DefaultKibanaVersion6]
+	}
+
+	return savedObjectsClient(kibanaClient)
+}
+
 func NewDefaultConfig() *Config {
 	config := &Config{
 		ElasticSearchPath: DefaultElasticSearchPath,
@@ -264,6 +280,10 @@ func (kibanaClient *KibanaClient) IndexPattern() IndexPatternClient {
 
 func (kibanaClient *KibanaClient) SavedObjects() SavedObjectsClient {
 	return getSavedObjectsClientFromVersion(kibanaClient.Config.KibanaVersion, kibanaClient)
+}
+
+func (kibanaClient *KibanaClient) Role() RoleClient {
+	return getRoleClientFromVersion(kibanaClient.Config.KibanaVersion, kibanaClient)
 }
 
 func (kibanaClient *KibanaClient) SetLogger(logger *log.Logger) *KibanaClient {

@@ -3,10 +3,12 @@ package kibana
 import (
 	"errors"
 	"fmt"
-	"github.com/fsouza/go-dockerclient"
-	"gopkg.in/ory-am/dockertest.v3"
 	"log"
+	"os"
 	"time"
+
+	docker "github.com/fsouza/go-dockerclient"
+	dockertest "gopkg.in/ory-am/dockertest.v3"
 )
 
 var imageNameFromVersion = map[string]string{
@@ -22,13 +24,22 @@ type kibanaContainer struct {
 }
 
 func newKibanaContainer(pool *dockertest.Pool, elasticSearch *elasticSearchContainer, kibanaVersion string, client *KibanaClient) (container *kibanaContainer, indexId string, err error) {
+	_, useXpackSecurity := os.LookupEnv("USE_XPACK_SECURITY")
 	envVars := []string{
 		fmt.Sprintf("ELASTICSEARCH_URL=http://%s:9200", elasticSearch.Name),
 	}
+	if useXpackSecurity {
+		envVars = append(envVars,
+			"XPACK_MONITORING_ENABLED=true",
+			"XPACK_SECURITY_ENABLED=true",
+			"ELASTICSEARCH_USERNAME=elastic",
+			"ELASTICSEARCH_PASSWORD=changeme",
+			"LOGGING_VERBOSE=true")
+	}
 
 	imageName, ok := imageNameFromVersion[kibanaVersion]
-	if !ok {
-		imageName = "kibana-oss"
+	if !ok || useXpackSecurity {
+		imageName = "kibana"
 	}
 
 	options := &dockertest.RunOptions{
