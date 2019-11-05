@@ -63,7 +63,7 @@ kibana use `KibanaTypeLogzio`
 
 * `kibana_password` - (Optional) password when authenticating with the Kibana API.
 
-* `logzio_client_id` - (Optional) client id used during [authentication with logzio](#authenticating-with-logz.io).
+* `logzio_client_id` - (Optional) client id used during [authentication with logzio](#authenticating-with-logzio).
 
 * `logzio_account_id` - (Optional) logz.io account id.
 
