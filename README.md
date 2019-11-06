@@ -9,6 +9,8 @@ Terraform Provider
 
 <img src="https://cdn.rawgit.com/hashicorp/terraform-website/master/content/source/assets/images/logo-hashicorp.svg" width="600px">
 
+This plugin supports terraform 0.12 syntax
+
 ## Requirements
 
 -	[Terraform](https://www.terraform.io/downloads.html) 0.10.x
