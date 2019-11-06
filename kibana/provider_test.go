@@ -4,12 +4,13 @@ import (
 	"testing"
 
 	"fmt"
-	"github.com/ewilde/go-kibana"
+	"strconv"
+	"strings"
+
+	kibana "github.com/ewilde/go-kibana"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
-	"strconv"
-	"strings"
 )
 
 var testAccProviders map[string]terraform.ResourceProvider
