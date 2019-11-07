@@ -123,7 +123,7 @@ provider "kibana" {
 }
 
 data "kibana_index" "main" {
-  filter = {
+  filter {
     name = "title"
     values = ["logstash-*"]
   }
@@ -134,24 +134,23 @@ resource "kibana_search" "china" {
   description     = "Errors occured when source was from china"
   display_columns = ["_source"]
   sort_by_columns = ["@timestamp"]
-  search = {
+  search {
     index   = "${data.kibana_index.main.id}"
-    filters = [
-      {
-        match = {
+    filters {
+        match {
           field_name = "geo.src"
           query      = "CN"
           type       = "phrase"
-        },
-      },
-      {
-        match = {
+        }
+    }
+    
+    filters {
+        match {
           field_name = "@tags"
           query      = "error"
           type       = "phrase"
         }
-      }
-    ]
+    }
   }
 }
 

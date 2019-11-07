@@ -3,8 +3,8 @@ package kibana
 import (
 	"fmt"
 	"github.com/ewilde/go-kibana"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"testing"
 
 	"strings"
@@ -175,22 +175,20 @@ resource "kibana_search" "china" {
 	description     = "Chinese search results"
 	display_columns = ["_source"]
 	sort_by_columns = ["@timestamp"]
-	search = {
+	search {
 		index   = "${data.kibana_index.main.id}"
-		filters = [
-			{
-				match = {
-					field_name = "geo.src"
-					query      = "CN"
-					type       = "phrase"
-				}
+		filters {
+			match {
+				field_name = "geo.src"
+				query      = "CN"
+				type       = "phrase"
 			}
-		]
+		}
 	}
 }
 
 data "kibana_index" "main" {
-	filter = {
+	filter {
 		name = "title"
 		values = ["logstash-*"]
 	}
@@ -276,22 +274,20 @@ resource "kibana_search" "china" {
 	description     = "Chinese search results"
 	display_columns = ["_source"]
 	sort_by_columns = ["@timestamp"]
-	search = {
+	search {
 		index   = "${data.kibana_index.main.id}"
-		filters = [
-			{
-				match = {
-					field_name = "geo.src"
-					query      = "CN"
-					type       = "phrase"
-				}
+		filters {
+			match {
+				field_name = "geo.src"
+				query      = "CN"
+				type       = "phrase"
 			}
-		]
+		}
 	}
 }
 
 data "kibana_index" "main" {
-	filter = {
+	filter {
 		name = "title"
 		values = ["logstash-*"]
 	}
@@ -378,17 +374,15 @@ resource "kibana_search" "china" {
 	description     = "Chinese search results"
 	display_columns = ["_source"]
 	sort_by_columns = ["@timestamp"]
-	search = {
+	search {
 		index   = "[logzioCustomerIndex]YYMMDD"
-		filters = [
-			{
-				match = {
-					field_name = "geo.src"
-					query      = "CN"
-					type       = "phrase"
-				}
+		filters {
+			match {
+				field_name = "geo.src"
+				query      = "CN"
+				type       = "phrase"
 			}
-		]
+		}
 	}
 }
 `
@@ -472,17 +466,15 @@ resource "kibana_search" "china" {
 	description     = "Chinese search results"
 	display_columns = ["_source"]
 	sort_by_columns = ["@timestamp"]
-    search = {
+    search {
 		index   = "[logzioCustomerIndex]YYMMDD"
-		filters = [
-			{
-				match = {
-					field_name = "geo.src"
-					query      = "CN"
-					type       = "phrase"
-				}
+		filters {
+			match {
+				field_name = "geo.src"
+				query      = "CN"
+				type       = "phrase"
 			}
-		]
+		}
 	}
 }
 `

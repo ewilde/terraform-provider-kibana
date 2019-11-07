@@ -3,8 +3,8 @@ package kibana
 import (
 	"fmt"
 	"github.com/ewilde/go-kibana"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"testing"
 
 	"strings"
@@ -53,7 +53,7 @@ func TestAccKibanaSearchApi(t *testing.T) {
 				),
 			},
 			{
-				Config: testSearchUpdate[testAccProvider.Meta().(*kibana.KibanaClient).Config.KibanaType],
+				Config: testSearchUpdate[testConfig.KibanaType],
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckKibanaSearchExists("kibana_search.china"),
 					resource.TestCheckResourceAttr("kibana_search.china", "name", "Chinese search - errors"),
@@ -164,17 +164,15 @@ resource "kibana_search" "china" {
 	description     = "Chinese search results"
 	display_columns = ["_source"]
 	sort_by_columns = ["@timestamp"]
-	search = {
+	search {
 		index   = "%s"
-		filters = [
-			{
-				match = {
-					field_name = "geo.src"
-					query      = "CN"
-					type       = "phrase"
-				}
+		filters {
+			match {
+				field_name = "geo.src"
+				query      = "CN"
+				type       = "phrase"
 			}
-		]
+		}
 	}
 }
 
@@ -187,39 +185,39 @@ resource "kibana_search" "china" {
 	description     = "Chinese search results with filter meta"
 	display_columns = ["_source"]
 	sort_by_columns = ["@timestamp"]
-	search = {
+	search {
 		index   = "%s"
-		filters = [
-			{
-				match = {
-					field_name = "geo.src"
-					query      = "CN"
-					type       = "phrase"
-				},
 
-				meta = {
-					index = "%s"
-					alias = "China"
+		filters {
+			match {
+				field_name = "geo.src"
+				query      = "CN"
+				type       = "phrase"
+			}
+
+			meta {
+				index = "%s"
+				alias = "China"
+				type  = "phrase"
+				key   = "geo.src"
+				value = "CN"
+				params {
+					query = "CN"
 					type  = "phrase"
-                    key   = "geo.src"
-					value = "CN"
- 					params = {
-						query = "CN"
-						type  = "phrase"
-					}
-				}
-			},
-			{
-				exists =  "geoip.region_name",
-
-				meta = {
-					index = "%s"
-					type  = "exists"
-                    key   = "geoip.region_name"
-					value = "exists"
 				}
 			}
-		]
+		}
+		
+		filters {
+			exists =  "geoip.region_name"
+
+			meta {
+				index = "%s"
+				type  = "exists"
+				key   = "geoip.region_name"
+				value = "exists"
+			}
+		}
 	}
 }
 
@@ -231,7 +229,7 @@ resource "kibana_search" "china" {
 	description     = "Chinese search results with query"
 	display_columns = ["_source"]
 	sort_by_columns = ["@timestamp"]
-	search = {
+	search {
 		index   = "%s"
 		query   = "geo.src:china"
 	}
@@ -246,24 +244,23 @@ resource "kibana_search" "china" {
 	description     = "Chinese errors"
 	display_columns = ["_source"]
 	sort_by_columns = ["@timestamp"]
-	search = {
+	search {
 		index   = "%s"
-		filters = [
-			{
-				match = {
-					field_name = "geo.src"
-					query      = "CN"
-					type       = "phrase"
-				},
-			},
-			{
-				match = {
-					field_name = "@tags"
-					query      = "error"
-					type       = "phrase"
-				}
+		filters {
+			match {
+				field_name = "geo.src"
+				query      = "CN"
+				type       = "phrase"
 			}
-		]
+		}
+
+		filters {
+			match {
+				field_name = "@tags"
+				query      = "error"
+				type       = "phrase"
+			}
+		}
 	}
 }
 
