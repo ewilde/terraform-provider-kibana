@@ -7,8 +7,8 @@ import (
 	"os"
 	"time"
 
-	docker "github.com/fsouza/go-dockerclient"
-	dockertest "gopkg.in/ory-am/dockertest.v3"
+	"github.com/ory/dockertest"
+	docker "github.com/ory/dockertest/docker"
 )
 
 var imageNameFromVersion = map[string]string{

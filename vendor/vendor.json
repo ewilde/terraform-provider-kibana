@@ -225,6 +225,12 @@
 			"revisionTime": "2017-10-07T11:45:50Z"
 		},
 		{
+			"checksumSHA1": "bPqEIUDyjGuP28UR51c96vfN4xM=",
+			"path": "github.com/cenkalti/backoff",
+			"revision": "4b4cebaf850ec58f1bb1fec5bdebdf8501c2bc3f",
+			"revisionTime": "2019-05-11T09:24:43Z"
+		},
+		{
 			"checksumSHA1": "GqIrOttKaO7k6HIaHQLPr3cY7rY=",
 			"path": "github.com/containerd/continuity/pathdriver",
 			"revision": "0cf103d319cc2d7efe085224094f466d1f8b9640",
@@ -399,10 +405,10 @@
 			"revisionTime": "2017-01-27T09:51:30Z"
 		},
 		{
-			"checksumSHA1": "noVcPNWsN8MXIdvHAARXKcqnWfs=",
+			"checksumSHA1": "7EBS2YWy48OF+2lholBqE9hC9Lw=",
 			"path": "github.com/ewilde/go-kibana",
-			"revision": "402b9a2105e28acc7bf4caf12b78e34496649a1e",
-			"revisionTime": "2019-11-05T22:15:05Z"
+			"revision": "7c4b5422c952a08b1baaf240f959bf42e8380bf7",
+			"revisionTime": "2019-11-07T06:51:38Z"
 		},
 		{
 			"checksumSHA1": "2iG1OyYDGax71qsun0zBSdcFt4E=",
@@ -893,6 +899,156 @@
 			"path": "github.com/opencontainers/runc/libcontainer/user",
 			"revision": "91e979501348cb4cb13b5fb4437cc5d9ecd94b5d",
 			"revisionTime": "2017-11-30T14:51:47Z"
+		},
+		{
+			"checksumSHA1": "w6FDYZdqj4ttRJjLGygmACbRMzI=",
+			"path": "github.com/ory/dockertest",
+			"revision": "2b0896a948c60f3207381d9fc259d0fc13227c30",
+			"revisionTime": "2019-08-11T11:28:53Z"
+		},
+		{
+			"checksumSHA1": "zoXZtf4HBjGYwbcPTYSIdBA3OhM=",
+			"path": "github.com/ory/dockertest/docker",
+			"revision": "2b0896a948c60f3207381d9fc259d0fc13227c30",
+			"revisionTime": "2019-08-11T11:28:53Z"
+		},
+		{
+			"checksumSHA1": "kybFsLiR0A0kHhd57cvaiMs0Hew=",
+			"path": "github.com/ory/dockertest/docker/opts",
+			"revision": "2b0896a948c60f3207381d9fc259d0fc13227c30",
+			"revisionTime": "2019-08-11T11:28:53Z"
+		},
+		{
+			"checksumSHA1": "uDJas7BfDMU9KO8To8QNSW8/8dk=",
+			"path": "github.com/ory/dockertest/docker/pkg/archive",
+			"revision": "2b0896a948c60f3207381d9fc259d0fc13227c30",
+			"revisionTime": "2019-08-11T11:28:53Z"
+		},
+		{
+			"checksumSHA1": "C8v/B0kxp+sj0hOgkKgkqNCTBAs=",
+			"path": "github.com/ory/dockertest/docker/pkg/fileutils",
+			"revision": "2b0896a948c60f3207381d9fc259d0fc13227c30",
+			"revisionTime": "2019-08-11T11:28:53Z"
+		},
+		{
+			"checksumSHA1": "YU2ti1f8AhPb/TM7UbkYu1OkGKg=",
+			"path": "github.com/ory/dockertest/docker/pkg/homedir",
+			"revision": "2b0896a948c60f3207381d9fc259d0fc13227c30",
+			"revisionTime": "2019-08-11T11:28:53Z"
+		},
+		{
+			"checksumSHA1": "5UIsMHMB5UqXSwTQZGo3Wm2RDpU=",
+			"path": "github.com/ory/dockertest/docker/pkg/idtools",
+			"revision": "2b0896a948c60f3207381d9fc259d0fc13227c30",
+			"revisionTime": "2019-08-11T11:28:53Z"
+		},
+		{
+			"checksumSHA1": "XQO6g/D+PiItot/AWrd8PcovIjM=",
+			"path": "github.com/ory/dockertest/docker/pkg/ioutils",
+			"revision": "2b0896a948c60f3207381d9fc259d0fc13227c30",
+			"revisionTime": "2019-08-11T11:28:53Z"
+		},
+		{
+			"checksumSHA1": "7sxjyVW1ASCZ9xAaljp+hlDEqOY=",
+			"path": "github.com/ory/dockertest/docker/pkg/jsonmessage",
+			"revision": "2b0896a948c60f3207381d9fc259d0fc13227c30",
+			"revisionTime": "2019-08-11T11:28:53Z"
+		},
+		{
+			"checksumSHA1": "Y8s1mng/OFPn5iuMuHs7vndFbG4=",
+			"path": "github.com/ory/dockertest/docker/pkg/longpath",
+			"revision": "2b0896a948c60f3207381d9fc259d0fc13227c30",
+			"revisionTime": "2019-08-11T11:28:53Z"
+		},
+		{
+			"checksumSHA1": "1saFea8nAP1XnZrbs3dlqrHtwHU=",
+			"path": "github.com/ory/dockertest/docker/pkg/mount",
+			"revision": "2b0896a948c60f3207381d9fc259d0fc13227c30",
+			"revisionTime": "2019-08-11T11:28:53Z"
+		},
+		{
+			"checksumSHA1": "Tw92Jb1u7pNIltqvILsaa/I5gKE=",
+			"path": "github.com/ory/dockertest/docker/pkg/pools",
+			"revision": "2b0896a948c60f3207381d9fc259d0fc13227c30",
+			"revisionTime": "2019-08-11T11:28:53Z"
+		},
+		{
+			"checksumSHA1": "lY8wRT4PPfcEb2eVFbV+jLMlH5k=",
+			"path": "github.com/ory/dockertest/docker/pkg/stdcopy",
+			"revision": "2b0896a948c60f3207381d9fc259d0fc13227c30",
+			"revisionTime": "2019-08-11T11:28:53Z"
+		},
+		{
+			"checksumSHA1": "+H09Wo2LUci6EYbs+2WNJznkncM=",
+			"path": "github.com/ory/dockertest/docker/pkg/system",
+			"revision": "2b0896a948c60f3207381d9fc259d0fc13227c30",
+			"revisionTime": "2019-08-11T11:28:53Z"
+		},
+		{
+			"checksumSHA1": "dHrfSbjfFjefpmUfn4hjzxZW+EQ=",
+			"path": "github.com/ory/dockertest/docker/pkg/term",
+			"revision": "2b0896a948c60f3207381d9fc259d0fc13227c30",
+			"revisionTime": "2019-08-11T11:28:53Z"
+		},
+		{
+			"checksumSHA1": "4khwd4wPwh73ahgpGENFGBR81fw=",
+			"path": "github.com/ory/dockertest/docker/pkg/term/windows",
+			"revision": "2b0896a948c60f3207381d9fc259d0fc13227c30",
+			"revisionTime": "2019-08-11T11:28:53Z"
+		},
+		{
+			"checksumSHA1": "obuqG6sS6vhPJfvF4K99ZbIUcxM=",
+			"path": "github.com/ory/dockertest/docker/types",
+			"revision": "2b0896a948c60f3207381d9fc259d0fc13227c30",
+			"revisionTime": "2019-08-11T11:28:53Z"
+		},
+		{
+			"checksumSHA1": "lqxHA6yN75yCXouOAS6/H6ueNPk=",
+			"path": "github.com/ory/dockertest/docker/types/blkiodev",
+			"revision": "2b0896a948c60f3207381d9fc259d0fc13227c30",
+			"revisionTime": "2019-08-11T11:28:53Z"
+		},
+		{
+			"checksumSHA1": "x+BA3ejQ3Ow2Nu6lxG43enRBZC4=",
+			"path": "github.com/ory/dockertest/docker/types/container",
+			"revision": "2b0896a948c60f3207381d9fc259d0fc13227c30",
+			"revisionTime": "2019-08-11T11:28:53Z"
+		},
+		{
+			"checksumSHA1": "iBdrvhAYkgv3cwHevrC40tX+0O8=",
+			"path": "github.com/ory/dockertest/docker/types/filters",
+			"revision": "2b0896a948c60f3207381d9fc259d0fc13227c30",
+			"revisionTime": "2019-08-11T11:28:53Z"
+		},
+		{
+			"checksumSHA1": "ah2ucs6bzJF3Ad2SyIHSkFjXbVU=",
+			"path": "github.com/ory/dockertest/docker/types/mount",
+			"revision": "2b0896a948c60f3207381d9fc259d0fc13227c30",
+			"revisionTime": "2019-08-11T11:28:53Z"
+		},
+		{
+			"checksumSHA1": "Y1i15/KcGFmoT0jze4bDObxBf9Y=",
+			"path": "github.com/ory/dockertest/docker/types/network",
+			"revision": "2b0896a948c60f3207381d9fc259d0fc13227c30",
+			"revisionTime": "2019-08-11T11:28:53Z"
+		},
+		{
+			"checksumSHA1": "UMnrKxtdfbjwsnTOpKg0D6j92yQ=",
+			"path": "github.com/ory/dockertest/docker/types/registry",
+			"revision": "2b0896a948c60f3207381d9fc259d0fc13227c30",
+			"revisionTime": "2019-08-11T11:28:53Z"
+		},
+		{
+			"checksumSHA1": "1La6nODOd2sdgmB1NfvHsu9YCmY=",
+			"path": "github.com/ory/dockertest/docker/types/strslice",
+			"revision": "2b0896a948c60f3207381d9fc259d0fc13227c30",
+			"revisionTime": "2019-08-11T11:28:53Z"
+		},
+		{
+			"checksumSHA1": "Kh+cs2PlcE1Uld4JVA0RN3Ds+2o=",
+			"path": "github.com/ory/dockertest/docker/types/versions",
+			"revision": "2b0896a948c60f3207381d9fc259d0fc13227c30",
+			"revisionTime": "2019-08-11T11:28:53Z"
 		},
 		{
 			"checksumSHA1": "UmYMPKuYIY/PPRYaixh8FuR0X64=",

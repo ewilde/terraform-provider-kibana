@@ -203,6 +203,21 @@ func getRoleClientFromVersion(version string, kibanaClient *KibanaClient) RoleCl
 	return savedObjectsClient(kibanaClient)
 }
 
+var spaceClientFromVersion = map[string]func(kibanaClient *KibanaClient) SpaceClient{
+	DefaultKibanaVersion7: func(kibanaClient *KibanaClient) SpaceClient {
+		return &DefaultSpaceClient{config: kibanaClient.Config, client: kibanaClient.client}
+	},
+}
+
+func getSpaceClientFromVersion(version string, kibanaClient *KibanaClient) SpaceClient {
+	spaceClient, ok := spaceClientFromVersion[version]
+	if !ok {
+		spaceClient = spaceClientFromVersion[DefaultKibanaVersion7]
+	}
+
+	return spaceClient(kibanaClient)
+}
+
 func NewDefaultConfig() *Config {
 	config := &Config{
 		ElasticSearchPath: DefaultElasticSearchPath,
@@ -284,6 +299,10 @@ func (kibanaClient *KibanaClient) SavedObjects() SavedObjectsClient {
 
 func (kibanaClient *KibanaClient) Role() RoleClient {
 	return getRoleClientFromVersion(kibanaClient.Config.KibanaVersion, kibanaClient)
+}
+
+func (kibanaClient *KibanaClient) Space() SpaceClient {
+	return getSpaceClientFromVersion(kibanaClient.Config.KibanaVersion, kibanaClient)
 }
 
 func (kibanaClient *KibanaClient) SetLogger(logger *log.Logger) *KibanaClient {
