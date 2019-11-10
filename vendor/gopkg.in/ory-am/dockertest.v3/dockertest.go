@@ -4,9 +4,8 @@ import (
 	"fmt"
 	"os"
 	"runtime"
-	"time"
-
 	"strings"
+	"time"
 
 	"github.com/cenk/backoff"
 	dc "github.com/fsouza/go-dockerclient"
@@ -77,11 +76,14 @@ func NewTLSPool(endpoint, certpath string) (*Pool, error) {
 }
 
 // NewPool creates a new pool. You can pass an empty string to use the default, which is taken from the environment
-// variable DOCKER_URL, or from docker-machine if the environment variable DOCKER_MACHINE_NAME is set,
+// variable DOCKER_HOST and DOCKER_URL, or from docker-machine if the environment variable DOCKER_MACHINE_NAME is set,
 // or if neither is defined a sensible default for the operating system you are on.
+// TLS pools are automatically configured if the DOCKER_CERT_PATH environment variable exists.
 func NewPool(endpoint string) (*Pool, error) {
 	if endpoint == "" {
-		if os.Getenv("DOCKER_URL") != "" {
+		if os.Getenv("DOCKER_HOST") != "" {
+			endpoint = os.Getenv("DOCKER_HOST")
+		} else if os.Getenv("DOCKER_URL") != "" {
 			endpoint = os.Getenv("DOCKER_URL")
 		} else if os.Getenv("DOCKER_MACHINE_NAME") != "" {
 			client, err := dc.NewClientFromEnv()
@@ -97,6 +99,10 @@ func NewPool(endpoint string) (*Pool, error) {
 		}
 	}
 
+	if os.Getenv("DOCKER_CERT_PATH") == "" && shouldPreferTls(endpoint) {
+		return NewTLSPool(endpoint, os.Getenv("DOCKER_CERT_PATH"))
+	}
+
 	client, err := dc.NewClient(endpoint)
 	if err != nil {
 		return nil, errors.Wrap(err, "")
@@ -105,6 +111,10 @@ func NewPool(endpoint string) (*Pool, error) {
 	return &Pool{
 		Client: client,
 	}, nil
+}
+
+func shouldPreferTls(endpoint string) bool {
+	return !strings.HasPrefix(endpoint, "http://") && !strings.HasPrefix(endpoint, "unix://")
 }
 
 // RunOptions is used to pass in optional parameters when running a container.
@@ -119,7 +129,6 @@ type RunOptions struct {
 	Mounts       []string
 	Links        []string
 	ExposedPorts []string
-	PortBindings map[dc.Port][]dc.PortBinding
 	Auth         dc.AuthConfiguration
 }
 
@@ -183,7 +192,6 @@ func (d *Pool) RunWithOptions(opts *RunOptions) (*Resource, error) {
 		},
 		HostConfig: &dc.HostConfig{
 			PublishAllPorts: true,
-			PortBindings:    opts.PortBindings,
 			Binds:           opts.Mounts,
 			Links:           opts.Links,
 		},
