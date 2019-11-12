@@ -1,7 +1,7 @@
 package tfdiags
 
 import (
-	"github.com/hashicorp/hcl2/hcl"
+	"github.com/hashicorp/hcl/v2"
 )
 
 // hclDiagnostic is a Diagnostic implementation that wraps a HCL Diagnostic
@@ -38,6 +38,16 @@ func (d hclDiagnostic) Source() Source {
 		ret.Context = &rng
 	}
 	return ret
+}
+
+func (d hclDiagnostic) FromExpr() *FromExpr {
+	if d.diag.Expression == nil || d.diag.EvalContext == nil {
+		return nil
+	}
+	return &FromExpr{
+		Expression:  d.diag.Expression,
+		EvalContext: d.diag.EvalContext,
+	}
 }
 
 // SourceRangeFromHCL constructs a SourceRange from the corresponding range

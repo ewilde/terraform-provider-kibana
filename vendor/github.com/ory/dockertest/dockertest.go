@@ -181,40 +181,27 @@ type RunOptions struct {
 	Privileged   bool
 }
 
-// BuildOptions is used to pass in optional parameters when building a container
-type BuildOptions struct {
-	Dockerfile string
-	ContextDir string
-}
-
-// BuildAndRunWithBuildOptions builds and starts a docker container.
+// BuildAndRunWithOptions builds and starts a docker container.
 // Optional modifier functions can be passed in order to change the hostconfig values not covered in RunOptions
-func (d *Pool) BuildAndRunWithBuildOptions(buildOpts *BuildOptions, runOpts *RunOptions, hcOpts ...func(*dc.HostConfig)) (*Resource, error) {
+func (d *Pool) BuildAndRunWithOptions(dockerfilePath string, opts *RunOptions, hcOpts ...func(*dc.HostConfig)) (*Resource, error) {
+	// Set the Dockerfile folder as build context
+	dir, file := filepath.Split(dockerfilePath)
+
 	err := d.Client.BuildImage(dc.BuildImageOptions{
-		Name:         runOpts.Name,
-		Dockerfile:   buildOpts.Dockerfile,
+		Name:         opts.Name,
+		Dockerfile:   file,
 		OutputStream: ioutil.Discard,
-		ContextDir:   buildOpts.ContextDir,
+		ContextDir:   dir,
 	})
 
 	if err != nil {
 		return nil, errors.Wrap(err, "")
 	}
 
-	runOpts.Repository = runOpts.Name
+	opts.Repository = opts.Name
 
-	return d.RunWithOptions(runOpts, hcOpts...)
+	return d.RunWithOptions(opts, hcOpts...)
 }
-
-// BuildAndRunWithOptions builds and starts a docker container.
-// Optional modifier functions can be passed in order to change the hostconfig values not covered in RunOptions
-func (d *Pool) BuildAndRunWithOptions(dockerfilePath string, opts *RunOptions, hcOpts ...func(*dc.HostConfig)) (*Resource, error) {
-	// Set the Dockerfile folder as build context
-	dir, file := filepath.Split(dockerfilePath)
-	buildOpts := BuildOptions{Dockerfile:file, ContextDir:dir}
-	return d.BuildAndRunWithBuildOptions(&buildOpts, opts, hcOpts...)
-}
-
 
 // BuildAndRun builds and starts a docker container
 func (d *Pool) BuildAndRun(name, dockerfilePath string, env []string) (*Resource, error) {

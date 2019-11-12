@@ -3,8 +3,8 @@ package kibana
 import (
 	"fmt"
 	"github.com/ewilde/go-kibana"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/structure"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
 	"log"
 )
 

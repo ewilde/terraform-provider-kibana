@@ -6,8 +6,8 @@ import (
 	"testing"
 
 	kibana "github.com/ewilde/go-kibana"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
 func TestAccKibanaSpaceBasic(t *testing.T) {
