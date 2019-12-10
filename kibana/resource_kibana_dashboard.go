@@ -77,7 +77,7 @@ func resourceKibanaDashboard() *schema.Resource {
 				Type:        schema.TypeString,
 				Description: "Search source json",
 				Optional:    true,
-				Default: "{}",
+				Default:     "{}",
 				StateFunc: func(v interface{}) string {
 					json, _ := structure.NormalizeJsonString(v)
 					return json
