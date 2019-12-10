@@ -40,18 +40,22 @@ type VisualizationReferences struct {
 }
 
 type VisualizationAttributes struct {
-	Title              string `json:"title"`
-	Description        string `json:"description"`
-	Version            int    `json:"version"`
-	VisualizationState string `json:"visState"`
-	SavedSearchId      string `json:"savedSearchId,omitempty"`
+	Title                 string                       `json:"title"`
+	Description           string                       `json:"description"`
+	Version               int                          `json:"version"`
+	VisualizationState    string                       `json:"visState"`
+	SavedSearchId         string                       `json:"savedSearchId,omitempty"`
+	SavedSearchRefName    string                       `json:"savedSearchRefName,omitempty"`
+	KibanaSavedObjectMeta *SearchKibanaSavedObjectMeta `json:"kibanaSavedObjectMeta"`
 }
 
 type VisualizationRequestBuilder struct {
-	title              string
-	description        string
-	visualizationState string
-	savedSearchId      string
+	title                 string
+	description           string
+	visualizationState    string
+	savedSearchId         string
+	savedSearchRefName    string
+	kibanaSavedObjectMeta *SearchKibanaSavedObjectMeta
 }
 
 type visualizationClient600 struct {
@@ -95,24 +99,37 @@ func (builder *VisualizationRequestBuilder) WithSavedSearchId(savedSearchId stri
 	return builder
 }
 
+func (builder *VisualizationRequestBuilder) WithSavedSearchRefName(savedSearchRefName string) *VisualizationRequestBuilder {
+	builder.savedSearchRefName = savedSearchRefName
+	return builder
+}
+
+func (builder *VisualizationRequestBuilder) WithKibanaSavedObjectMeta(meta *SearchKibanaSavedObjectMeta) *Vis    ualizationRequestBuilder {
+	builder.kibanaSavedObjectMeta = meta
+	return builder
+}
+
 func (builder *VisualizationRequestBuilder) Build(version string) (*CreateVisualizationRequest, error) {
 	if goversion.Compare(version, "7.0.0", "<") {
 		return &CreateVisualizationRequest{
 			Attributes: &VisualizationAttributes{
-				Title:              builder.title,
-				Description:        builder.description,
-				SavedSearchId:      builder.savedSearchId,
-				Version:            1,
-				VisualizationState: builder.visualizationState,
+				Title:                 builder.title,
+				Description:           builder.description,
+				SavedSearchId:         builder.savedSearchId,
+				Version:               1,
+				VisualizationState:    builder.visualizationState,
+				KibanaSavedObjectMeta: builder.kibanaSavedObjectMeta,
 			},
 		}, nil
 	} else {
 		return &CreateVisualizationRequest{
 			Attributes: &VisualizationAttributes{
-				Title:              builder.title,
-				Description:        builder.description,
-				Version:            1,
-				VisualizationState: builder.visualizationState,
+				Title:                 builder.title,
+				Description:           builder.description,
+				Version:               1,
+				VisualizationState:    builder.visualizationState,
+				KibanaSavedObjectMeta: builder.kibanaSavedObjectMeta,
+				SavedSearchRefName:    "search_1",
 			},
 			References: []*VisualizationReferences{
 				{

@@ -47,6 +47,21 @@ func resourceKibanaVisualization() *schema.Resource {
 					return newJson == oldJson
 				},
 			},
+			"search_source_json": {
+				Type:        schema.TypeString,
+				Description: "Search source json",
+				Optional:    true,
+				Default: "{}",
+				StateFunc: func(v interface{}) string {
+					json, _ := structure.NormalizeJsonString(v)
+					return json
+				},
+				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+					newJson, _ := structure.NormalizeJsonString(new)
+					oldJson, _ := structure.NormalizeJsonString(old)
+					return newJson == oldJson
+				},
+			},
 		},
 	}
 }
@@ -89,6 +104,9 @@ func resourceKibanaVisualizationRead(d *schema.ResourceData, meta interface{}) e
 			d.Set("saved_search_id", response.References[0].Id)
 		}
 	}
+	if response.Attributes.KibanaSavedObjectMeta != nil {
+		d.Set("search_source_json", response.Attributes.KibanaSavedObjectMeta.SearchSourceJSON)
+	}
 	d.Set("visualization_state", response.Attributes.VisualizationState)
 
 	return nil
@@ -127,10 +145,16 @@ func resourceKibanaVisualizationDelete(d *schema.ResourceData, meta interface{})
 }
 
 func createKibanaVisualizationCreateRequestFromResourceData(d *schema.ResourceData, version string) (*kibana.CreateVisualizationRequest, error) {
-	return kibana.NewVisualizationRequestBuilder().
+	request := kibana.NewVisualizationRequestBuilder().
 		WithTitle(readStringFromResource(d, "name")).
 		WithDescription(readStringFromResource(d, "description")).
 		WithSavedSearchId(readStringFromResource(d, "saved_search_id")).
-		WithVisualizationState(readStringFromResource(d, "visualization_state")).
-		Build(version)
+		WithVisualizationState(readStringFromResource(d, "visualization_state"))
+
+	searchMeta := readStringFromResource(d, "search_source_json")
+	if len(searchMeta) > 0 {
+		request.WithKibanaSavedObjectMeta(&kibana.SearchKibanaSavedObjectMeta{SearchSourceJSON: searchMeta})
+	}
+
+	return request.Build(version)
 }
