@@ -96,6 +96,8 @@ github.com/ewilde/go-kibana v0.0.0-20191105221505-402b9a2105e2 h1:Ogi5k5w0S3uRwt
 github.com/ewilde/go-kibana v0.0.0-20191105221505-402b9a2105e2/go.mod h1:a8+7wLUoKWd60yH6R5dtLxQ/kKZz+9HH8VnGd1+jEH4=
 github.com/ewilde/go-kibana v0.0.0-20191107065138-7c4b5422c952 h1:UZpJHnOfs9EVWoGD5+4oHPnAMmhFaOEATTQQNmp+gc4=
 github.com/ewilde/go-kibana v0.0.0-20191107065138-7c4b5422c952/go.mod h1:O5iM94wkeZicbmZPcp6s2JXKyKuPD6OGcHgb39B3TEk=
+github.com/ewilde/go-kibana v0.0.0-20191210182714-d7799b1ab551 h1:KXiWhU8KM2z4lbv1WH1vRRuV1EH39pNkXimG1rzVXUs=
+github.com/ewilde/go-kibana v0.0.0-20191210182714-d7799b1ab551/go.mod h1:O5iM94wkeZicbmZPcp6s2JXKyKuPD6OGcHgb39B3TEk=
 github.com/fatih/color v1.7.0 h1:DkWD4oS2D8LGGgTQ6IvwJJXSL5Vp2ffcQg58nFV38Ys=
 github.com/fatih/color v1.7.0/go.mod h1:Zm6kSWBoL9eyXnKyktHP6abPY2pDugNf5KwzbycvMj4=
 github.com/fsnotify/fsnotify v1.4.7/go.mod h1:jwhsz4b93w/PPRr/qN1Yymfu8t87LnFCMoQvtojpjFo=
