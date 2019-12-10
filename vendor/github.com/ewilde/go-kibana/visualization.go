@@ -104,7 +104,7 @@ func (builder *VisualizationRequestBuilder) WithSavedSearchRefName(savedSearchRe
 	return builder
 }
 
-func (builder *VisualizationRequestBuilder) WithKibanaSavedObjectMeta(meta *SearchKibanaSavedObjectMeta) *Vis    ualizationRequestBuilder {
+func (builder *VisualizationRequestBuilder) WithKibanaSavedObjectMeta(meta *SearchKibanaSavedObjectMeta) *VisualizationRequestBuilder {
 	builder.kibanaSavedObjectMeta = meta
 	return builder
 }
