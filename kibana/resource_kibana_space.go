@@ -57,6 +57,9 @@ func resourceKibanaSpace() *schema.Resource {
 				Required: false,
 			},
 		},
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 	}
 }
 
