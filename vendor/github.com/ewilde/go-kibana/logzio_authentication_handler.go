@@ -4,10 +4,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/parnurzeal/gorequest"
-	"github.com/xlzd/gotp"
 	"log"
 	"regexp"
+
+	"github.com/parnurzeal/gorequest"
+	"github.com/xlzd/gotp"
 )
 
 const (
@@ -177,6 +178,7 @@ func (auth *LogzAuthenticationHandler) ChangeAccount(accountId string, agent *Ht
 }
 
 func (auth *LogzAuthenticationHandler) getCSRFToken() (string, error) {
+
 	request := gorequest.New()
 	response, _, errs := request.Get(fmt.Sprintf("%s/#/login", auth.LogzUri)).
 		End()
@@ -184,15 +186,42 @@ func (auth *LogzAuthenticationHandler) getCSRFToken() (string, error) {
 	if len(errs) > 0 {
 		return "", errs[0]
 	}
-	cookieHeader := response.Header.Get("Set-Cookie")
-	csrfCookieRegEx := regexp.MustCompile("Logzio-Csrf=([^;]+)")
-	cookieRegExMatches := csrfCookieRegEx.FindStringSubmatch(cookieHeader)
-	if len(cookieRegExMatches) < 2 {
-		return "", errors.New("could not retrieve CSRF token from logz.io cookie")
+
+	csrfToken, err := findCsrfTokenInCookies(response)
+	if err != nil {
+		return "", err
 	}
-	csrfToken := cookieRegExMatches[1]
+
 	auth.csrfToken = csrfToken
 	return csrfToken, nil
+}
+
+var (
+	csrfRegexps = []*regexp.Regexp{
+		regexp.MustCompile("Logzio-Csrf=([^;]+)"),
+		regexp.MustCompile("Logzio-Csrf-V2=([^;]+)"),
+	}
+)
+
+func findCsrfTokenInCookies(response gorequest.Response) (string, error) {
+	for _, cookie := range response.Header["Set-Cookie"] {
+		token, err := findCsrfTokenInCookieUsingRegexps(cookie, csrfRegexps)
+		if err == nil && len(token) > 0 {
+			return token, nil
+		}
+	}
+	return "", errors.New("could not retrieve CSRF token from logz.io cookie")
+}
+
+func findCsrfTokenInCookieUsingRegexps(cookie string, regexps []*regexp.Regexp) (string, error) {
+	for _, regexp := range regexps {
+		matches := regexp.FindStringSubmatch(cookie)
+		if len(matches) > 1 {
+			return matches[1], nil
+		}
+	}
+
+	return "", fmt.Errorf("Cookie %s didn't match %v", cookie, regexps)
 }
 
 func (auth *LogzAuthenticationHandler) getLogzioSessionToken(retry bool) (sessionToken string, err error) {
