@@ -3,7 +3,7 @@ module github.com/ewilde/terraform-provider-kibana
 go 1.13
 
 require (
-	github.com/ewilde/go-kibana v0.0.0-20191210182714-d7799b1ab551
+	github.com/ewilde/go-kibana v0.0.0-20201120090515-b1d2ef27f611
 	github.com/hashicorp/hcl v0.0.0-20171017181929-23c074d0eceb // indirect
 	github.com/hashicorp/terraform v0.12.13 // indirect
 	github.com/hashicorp/terraform-plugin-sdk v1.0.0
