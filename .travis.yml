@@ -17,10 +17,10 @@ deploy:
 env:
   matrix:
   - ELK_VERSION=5.5.3   KIBANA_TYPE=KibanaTypeVanilla   KIBANA_USERNAME=elastic             KIBANA_PASSWORD=changeme  ELASTIC_PACK=  MAKELOGS_VERSION=makelogs@4.0.3
-  - ELK_VERSION=6.3.2   KIBANA_TYPE=KibanaTypeLogzio    KIBANA_URI=https://app-eu.logz.io   ELASTIC_SEARCH_PATH=/kibana/elasticsearch/logzioCustomerKibanaIndex  MAKELOGS_VERSION=makelogs@4.0.3
   - ELK_VERSION=6.2.1   KIBANA_TYPE=KibanaTypeVanilla  MAKELOGS_VERSION=makelogs@4.0.3
   - ELK_VERSION=6.3.2   KIBANA_TYPE=KibanaTypeVanilla  MAKELOGS_VERSION=makelogs@4.0.3
   - ELK_VERSION=6.4.1   KIBANA_TYPE=KibanaTypeVanilla  MAKELOGS_VERSION=makelogs@4.0.3
+  - ELK_VERSION=7.2.1   KIBANA_TYPE=KibanaTypeLogzio    KIBANA_URI=https://app-eu.logz.io   ELASTIC_SEARCH_PATH=/kibana/elasticsearch/logzioCustomerKibanaIndex  MAKELOGS_VERSION=makelogs@4.0.3
   - ELK_VERSION=7.3.1   KIBANA_TYPE=KibanaTypeVanilla  MAKELOGS_VERSION=@elastic/makelogs@4.5.0
   - ELK_VERSION=7.3.1   KIBANA_TYPE=KibanaTypeVanilla  MAKELOGS_VERSION=@elastic/makelogs@4.5.0 USE_XPACK_SECURITY=1 ELK_PACK= KIBANA_USERNAME=elastic KIBANA_PASSWORD=changeme
   global:
