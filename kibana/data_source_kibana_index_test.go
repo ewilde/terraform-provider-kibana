@@ -2,12 +2,13 @@ package kibana
 
 import (
 	"fmt"
+	"strings"
+	"testing"
+
 	"github.com/ewilde/go-kibana"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/pkg/errors"
-	"strings"
-	"testing"
 )
 
 var testDataSource = map[kibana.KibanaType]string{
@@ -61,6 +62,7 @@ func testAccDataSourceKibanaIndex(dataSource string) resource.TestCheckFunc {
 
 func testAccDataSourceKibanaIndexLogz(dataSource string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+
 		r := s.RootModule().Resources[dataSource]
 		if r == nil {
 			return errors.New("expected kibana index data source, but was not present")
@@ -68,7 +70,7 @@ func testAccDataSourceKibanaIndexLogz(dataSource string) resource.TestCheckFunc 
 
 		a := r.Primary.Attributes
 
-		expectedTitle := "[logzio"
+		expectedTitle := "logzio"
 		if !strings.HasPrefix(a["title"], expectedTitle) {
 			return fmt.Errorf("expected kibana index title start with %s actual %s", expectedTitle, a["title"])
 		}
@@ -78,8 +80,9 @@ func testAccDataSourceKibanaIndexLogz(dataSource string) resource.TestCheckFunc 
 			return fmt.Errorf("expected kibana index time field name %s actual %s", expectedTimeFieldName, a["time_field_name"])
 		}
 
-		if r.Primary.ID != "[logzioCustomerIndex]YYMMDD" {
-			return fmt.Errorf("expected id to be [logzioCustomerIndex]YYMMDD characters actual %s", r.Primary.ID)
+		expectedID := "logzioCustomerIndex*"
+		if r.Primary.ID != expectedID {
+			return fmt.Errorf("expected id to be %s actual %s", expectedID, r.Primary.ID)
 		}
 		return nil
 	}
@@ -98,7 +101,7 @@ const testAccDataSourceKibanaConfigLogzio = `
 data "kibana_index" "basic" {
 	filter {
 		name = "id"
-		values = ["[logzioCustomerIndex]YYMMDD"]
+		values = ["logzioCustomerIndex*"]
 	}
 }
 `
