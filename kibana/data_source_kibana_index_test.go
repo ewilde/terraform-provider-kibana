@@ -80,8 +80,9 @@ func testAccDataSourceKibanaIndexLogz(dataSource string) resource.TestCheckFunc 
 			return fmt.Errorf("expected kibana index time field name %s actual %s", expectedTimeFieldName, a["time_field_name"])
 		}
 
-		if r.Primary.ID != "logzioCustomerIndex*" {
-			return fmt.Errorf("expected id to be [logzioCustomerIndex]YYMMDD characters actual %s", r.Primary.ID)
+		expectedID := "logzioCustomerIndex*"
+		if r.Primary.ID != expectedID {
+			return fmt.Errorf("expected id to be %s actual %s", expectedID, r.Primary.ID)
 		}
 		return nil
 	}
