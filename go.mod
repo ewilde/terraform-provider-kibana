@@ -20,4 +20,6 @@ require (
 	golang.org/x/net v0.0.0-20201110031124-69a78807bb2b // indirect
 	golang.org/x/sys v0.0.0-20201117222635-ba5294a509c7 // indirect
 	moul.io/http2curl v1.0.0 // indirect
+
+	replace golang.org/x/sys => golang.org/x/sys v0.0.0-20190813064441-fde4db37ae7a
 )
