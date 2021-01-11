@@ -1,11 +1,17 @@
 builds:
   - binary: terraform-provider-kibana_v{{.Version}}
+    env:
+      - CGO_ENABLED=0
     goos:
       - darwin
       - linux
       - windows
     goarch:
       - amd64
+changelog:
+  filters:
+    exclude:
+    - "^Merge pull request"
+    - "^Merge branch"
 archives:
-  - id: default
-    format: zip
+  - format: zip
