@@ -90,10 +90,10 @@ func (auth *LogzAuthenticationHandler) initializeWithAuth0(agent *gorequest.Supe
 		return err
 	}
 
-	request := gorequest.New()
-	response, body, errs := request.Post(fmt.Sprintf("%s/login/jwt", auth.LogzUri)).
-		Set("x-logz-csrf-token", csrfToken).
-		Set("cookie", fmt.Sprintf("Logzio-Csrf=%s", csrfToken)).
+	// create a brand new request instead of interfering with the one that
+	// we have as function argument
+	agent2 := gorequest.New().Post(fmt.Sprintf("%s/login/jwt", auth.LogzUri))
+	response, body, errs := agentWithCSRFToken(agent2, csrfToken).
 		Send(fmt.Sprintf(`{
 		  "jwt": "%s"
 		}`, authResponse.IdTokens)).
@@ -132,9 +132,8 @@ func (auth *LogzAuthenticationHandler) initializeWithAuth0MFA(agent *gorequest.S
 		return fmt.Errorf("Error getting MFA code: %s", err)
 	}
 
-	response, body, errs := request.Post(fmt.Sprintf("%s/login/jwt", auth.LogzUri)).
-		Set("x-logz-csrf-token", csrfToken).
-		Set("cookie", fmt.Sprintf("Logzio-Csrf=%s", csrfToken)).
+	agent2 := request.Post(fmt.Sprintf("%s/login/jwt", auth.LogzUri))
+	response, body, errs := agentWithCSRFToken(agent2, csrfToken).
 		Send(fmt.Sprintf(`{
 	  "jwt": "%s"
 	}`, sessionToken)).
@@ -259,9 +258,14 @@ func (auth *LogzAuthenticationHandler) getMFACode() string {
 }
 
 func (auth *LogzAuthenticationHandler) setLogzHeaders(agent *gorequest.SuperAgent) *gorequest.SuperAgent {
-	return agent.
-		Set("x-logz-csrf-token", auth.csrfToken).
-		Set("cookie", fmt.Sprintf("Logzio-Csrf=%s", auth.csrfToken)).
+	return agentWithCSRFToken(agent, auth.csrfToken).
 		Set("x-auth-token", auth.sessionToken).
 		Set("Content-Type", "application/json")
+}
+
+func agentWithCSRFToken(agent *gorequest.SuperAgent, token string) *gorequest.SuperAgent {
+	return agent.
+		Set("X-Logz-CSRF-Token", token).
+		Set("X-Logz-CSRF-Token-V2", token).
+		Set("cookie", fmt.Sprintf("Logzio-Csrf=%s; Logzio-Csrf-V2=%s", token, token))
 }
