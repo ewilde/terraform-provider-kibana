@@ -108,6 +108,8 @@ github.com/ewilde/go-kibana v0.0.0-20191210182714-d7799b1ab551 h1:KXiWhU8KM2z4lb
 github.com/ewilde/go-kibana v0.0.0-20191210182714-d7799b1ab551/go.mod h1:O5iM94wkeZicbmZPcp6s2JXKyKuPD6OGcHgb39B3TEk=
 github.com/ewilde/go-kibana v0.0.0-20201118130426-9ecaba9aa501 h1:QETAAJWDcjWbRVT16mWNx5Vpll1+iMuagfktwbD5tGo=
 github.com/ewilde/go-kibana v0.0.0-20201118130426-9ecaba9aa501/go.mod h1:O5iM94wkeZicbmZPcp6s2JXKyKuPD6OGcHgb39B3TEk=
+github.com/ewilde/go-kibana v0.0.0-20210127120218-80bc38c8b5b8 h1:FgAnjJcVKLD0mcE5VqkN8Qo/N9ByFAGY0YXgWclYgP0=
+github.com/ewilde/go-kibana v0.0.0-20210127120218-80bc38c8b5b8/go.mod h1:O5iM94wkeZicbmZPcp6s2JXKyKuPD6OGcHgb39B3TEk=
 github.com/fatih/color v1.7.0 h1:DkWD4oS2D8LGGgTQ6IvwJJXSL5Vp2ffcQg58nFV38Ys=
 github.com/fatih/color v1.7.0/go.mod h1:Zm6kSWBoL9eyXnKyktHP6abPY2pDugNf5KwzbycvMj4=
 github.com/fsnotify/fsnotify v1.4.7/go.mod h1:jwhsz4b93w/PPRr/qN1Yymfu8t87LnFCMoQvtojpjFo=
@@ -493,6 +495,8 @@ golang.org/x/sys v0.0.0-20190606165138-5da285871e9c/go.mod h1:h1NjWce9XRLGQEsW7w
 golang.org/x/sys v0.0.0-20190624142023-c5567b49c5d0/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/sys v0.0.0-20190804053845-51ab0e2deafa h1:KIDDMLT1O0Nr7TSxp8xM5tJcdn8tgyAONntO829og1M=
 golang.org/x/sys v0.0.0-20190804053845-51ab0e2deafa/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
+golang.org/x/sys v0.0.0-20190830141801-acfa387b8d69 h1:Wdn4Yb8d5VrsO3jWgaeSZss09x1VLVBMePDh4VW/xSQ=
+golang.org/x/sys v0.0.0-20190830141801-acfa387b8d69/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/sys v0.0.0-20190916202348-b4ddaad3f8a3/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/sys v0.0.0-20191026070338-33540a1f6037/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/sys v0.0.0-20200930185726-fdedc70b468f/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
