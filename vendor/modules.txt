@@ -74,7 +74,7 @@ github.com/davecgh/go-spew/spew
 github.com/docker/go-connections/nat
 # github.com/docker/go-units v0.4.0
 github.com/docker/go-units
-# github.com/ewilde/go-kibana v0.0.0-20201118130426-9ecaba9aa501
+# github.com/ewilde/go-kibana v0.0.0-20210127120218-80bc38c8b5b8
 github.com/ewilde/go-kibana
 # github.com/fatih/color v1.7.0
 github.com/fatih/color
@@ -331,8 +331,7 @@ golang.org/x/oauth2/google
 golang.org/x/oauth2/internal
 golang.org/x/oauth2/jws
 golang.org/x/oauth2/jwt
-# golang.org/x/sys v0.0.0-20201117222635-ba5294a509c7
-golang.org/x/sys/internal/unsafeheader
+# golang.org/x/sys v0.0.0-20201117222635-ba5294a509c7 => golang.org/x/sys v0.0.0-20190830141801-acfa387b8d69
 golang.org/x/sys/unix
 golang.org/x/sys/windows
 # golang.org/x/text v0.3.3
