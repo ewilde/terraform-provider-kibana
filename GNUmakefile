@@ -15,15 +15,13 @@ ifndef KIBANA_TYPE
 	$(error KIBANA_TYPE is undefined)
 endif
 
-travisbuild: deps default
+cibuild: deps default
 
 test: fmtcheck docker-build
 	TF_ACC=1 go test -v ./kibana -run $(TEST_PATH)
 
 build: fmtcheck vet test
 	@go install
-	@mkdir -p ~/.terraform.d/plugins/
-	@cp $(GOPATH)/bin/terraform-provider-kibana ~/.terraform.d/plugins/terraform-provider-kibana
 	@echo "Build succeeded"
 
 docker-build: check-elk-version check-kibana-type
