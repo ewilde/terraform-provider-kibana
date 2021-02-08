@@ -9,7 +9,6 @@ on:
   push:
     paths-ignore:
       - 'README.md'
-
   workflow_dispatch:
   # For systems with an upstream API that could drift unexpectedly (like most SaaS systems, etc.),
   # we recommend testing at a regular interval not necessarily tied to code changes. This will
