@@ -1,11 +1,9 @@
-[![Build Status](https://travis-ci.org/ewilde/terraform-provider-kibana.svg?branch=master)](https://travis-ci.org/ewilde/terraform-provider-kibana)
 
 Terraform Provider
 ==================
 
-- Website: https://www.terraform.io
-- [![Gitter chat](https://badges.gitter.im/hashicorp-terraform/Lobby.png)](https://gitter.im/hashicorp-terraform/Lobby)
-- Mailing list: [Google Groups](http://groups.google.com/group/terraform-tool)
+- [![Test Status](https://github.com/ewilde/terraform-provider-kibana/workflows/Tests/badge.svg)](https://github.com/ewilde/terraform-provider-kibana/actions?query=workflow%3ATests)
+- Website: https://registry.terraform.io/providers/ewilde/kibana/latest
 
 <img src="https://cdn.rawgit.com/hashicorp/terraform-website/master/content/source/assets/images/logo-hashicorp.svg" width="600px">
 
