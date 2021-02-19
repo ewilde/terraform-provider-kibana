@@ -27,4 +27,7 @@ require (
 
 )
 
-replace golang.org/x/sys => golang.org/x/sys v0.0.0-20190830141801-acfa387b8d69
+replace (
+	golang.org/x/sys => golang.org/x/sys v0.0.0-20190830141801-acfa387b8d69
+	github.com/ewilde/go-kibana => /home/peter/tools/go-kibana
+)

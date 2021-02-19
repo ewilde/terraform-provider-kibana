@@ -74,7 +74,7 @@ github.com/davecgh/go-spew/spew
 github.com/docker/go-connections/nat
 # github.com/docker/go-units v0.4.0
 github.com/docker/go-units
-# github.com/ewilde/go-kibana v0.0.0-20210127120218-80bc38c8b5b8
+# github.com/ewilde/go-kibana v0.0.0-20210127120218-80bc38c8b5b8 => /home/peter/tools/go-kibana
 github.com/ewilde/go-kibana
 # github.com/fatih/color v1.7.0
 github.com/fatih/color

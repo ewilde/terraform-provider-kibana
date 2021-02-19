@@ -101,6 +101,34 @@ func (api *searchClient600) GetById(id string) (*Search, error) {
 	return createResponse, nil
 }
 
+func (api *searchClient600) List() ([]*Search, error) {
+	response, body, err := api.client.
+		Get(api.config.KibanaBaseUri+savedObjectsPath+"_find?type=search&per_page=9999").
+		Set("kbn-version", api.config.KibanaVersion).
+		End()
+
+	if err != nil {
+		return nil, err[0]
+	}
+
+	if response.StatusCode >= 300 {
+		if api.config.KibanaType == KibanaTypeLogzio && response.StatusCode >= 400 { // bug in their api reports missing search as bad request or server error
+			response.StatusCode = 404
+		}
+		return nil, NewError(response, body, "Could not list searches")
+	}
+	var listResp = struct {
+		SavedObjects []*Search `json:"saved_objects"`
+	}{}
+	var listErr error
+	listErr = json.Unmarshal([]byte(body), &listResp)
+	if listErr != nil {
+		return nil, fmt.Errorf("could not parse fields from list search response, error: %v", listErr)
+	}
+
+	return listResp.SavedObjects, nil
+}
+
 func (api *searchClient600) Delete(id string) error {
 	response, body, err := api.client.
 		Delete(api.config.KibanaBaseUri+savedObjectsPath+"search/"+id).

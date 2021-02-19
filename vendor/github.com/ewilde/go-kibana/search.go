@@ -19,6 +19,7 @@ type SearchClient interface {
 	Create(request *CreateSearchRequest) (*Search, error)
 	Update(id string, request *UpdateSearchRequest) (*Search, error)
 	GetById(id string) (*Search, error)
+	List() ([]*Search, error)
 	Delete(id string) error
 	NewSearchSource() SearchSourceBuilder
 	Version() string
