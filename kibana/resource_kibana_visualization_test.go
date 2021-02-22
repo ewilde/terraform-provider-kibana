@@ -876,4 +876,21 @@ resource "kibana_visualization" "china_viz" {
 EOF
 }
 
+resource "kibana_search" "china" {
+	name 	        = "Chinese search"
+	description     = "Chinese search results"
+	display_columns = ["_source"]
+	sort_by_columns = ["@timestamp"]
+	search {
+		index   = "[logzioCustomerIndex]YYMMDD"
+		filters {
+			match {
+				field_name = "geo.src"
+				query      = "CN"
+				type       = "phrase"
+			}
+		}
+	}
+}
+
 `
