@@ -74,6 +74,9 @@ func TestAccKibanaVisualizationApiWithReferences(t *testing.T) {
 					resource.TestCheckResourceAttr("kibana_visualization.china_viz", "references.0.id", "logzioCustomerIndex*"),
 					resource.TestCheckResourceAttr("kibana_visualization.china_viz", "references.0.name", "kibanaSavedObjectMeta.searchSourceJSON.index"),
 					resource.TestCheckResourceAttr("kibana_visualization.china_viz", "references.0.type", kibana.VisualizationReferencesTypeIndexPattern.String()),
+					resource.TestCheckResourceAttrSet("kibana_visualization.china_viz", "references.1.id"),
+					resource.TestCheckResourceAttr("kibana_visualization.china_viz", "references.1.name", "Chinese search"),
+					resource.TestCheckResourceAttr("kibana_visualization.china_viz", "references.1.type", kibana.VisualizationReferencesTypeSearch.String()),
 				),
 			},
 			{
@@ -85,6 +88,9 @@ func TestAccKibanaVisualizationApiWithReferences(t *testing.T) {
 					resource.TestCheckResourceAttr("kibana_visualization.china_viz", "references.0.id", "logzioCustomerIndex*"),
 					resource.TestCheckResourceAttr("kibana_visualization.china_viz", "references.0.name", "kibanaSavedObjectMeta.searchSourceJSON.index"),
 					resource.TestCheckResourceAttr("kibana_visualization.china_viz", "references.0.type", kibana.VisualizationReferencesTypeIndexPattern.String()),
+					resource.TestCheckResourceAttrSet("kibana_visualization.china_viz", "references.1.id"),
+					resource.TestCheckResourceAttr("kibana_visualization.china_viz", "references.1.name", "Chinese search"),
+					resource.TestCheckResourceAttr("kibana_visualization.china_viz", "references.1.type", kibana.VisualizationReferencesTypeSearch.String()),
 				),
 			},
 		},
@@ -536,6 +542,11 @@ resource "kibana_visualization" "china_viz" {
 			name = "kibanaSavedObjectMeta.searchSourceJSON.index"
 			type = "index-pattern"
 		},
+		{
+			id = "${kibana_search.china.id}"
+			name = "Chinese search"
+			type = "search"
+		},
 	]
 
 	visualization_state = <<EOF
@@ -607,6 +618,24 @@ resource "kibana_visualization" "china_viz" {
 }
 EOF
 }
+
+resource "kibana_search" "china" {
+	name 	        = "Chinese search"
+	description     = "Chinese search results"
+	display_columns = ["_source"]
+	sort_by_columns = ["@timestamp"]
+	search {
+		index   = "[logzioCustomerIndex]YYMMDD"
+		filters {
+			match {
+				field_name = "geo.src"
+				query      = "CN"
+				type       = "phrase"
+			}
+		}
+	}
+}
+
 
 `
 
@@ -620,6 +649,11 @@ resource "kibana_visualization" "china_viz" {
 			name = "kibanaSavedObjectMeta.searchSourceJSON.index"
 			type = "index-pattern"
 		},
+		{
+			id = "${kibana_search.china.id}"
+			name = "Chinese search"
+			type = "search"
+		},
 	]
 
 	visualization_state = <<EOF
@@ -691,6 +725,24 @@ resource "kibana_visualization" "china_viz" {
 }
 EOF
 }
+
+resource "kibana_search" "china" {
+	name 	        = "Chinese search"
+	description     = "Chinese search results"
+	display_columns = ["_source"]
+	sort_by_columns = ["@timestamp"]
+	search {
+		index   = "[logzioCustomerIndex]YYMMDD"
+		filters {
+			match {
+				field_name = "geo.src"
+				query      = "CN"
+				type       = "phrase"
+			}
+		}
+	}
+}
+
 
 `
 
@@ -704,6 +756,11 @@ resource "kibana_visualization" "china_viz" {
 			name = "kibanaSavedObjectMeta.searchSourceJSON.index"
 			type = "index-pattern"
 		},
+		{
+			id = "${kibana_search.china.id}"
+			name = "Chinese search"
+			type = "search"
+		},
 	]
 
 	visualization_state = <<EOF
@@ -774,6 +831,23 @@ resource "kibana_visualization" "china_viz" {
   ]
 }
 EOF
+}
+
+resource "kibana_search" "china" {
+	name 	        = "Chinese search"
+	description     = "Chinese search results"
+	display_columns = ["_source"]
+	sort_by_columns = ["@timestamp"]
+	search {
+		index   = "[logzioCustomerIndex]YYMMDD"
+		filters {
+			match {
+				field_name = "geo.src"
+				query      = "CN"
+				type       = "phrase"
+			}
+		}
+	}
 }
 
 `
@@ -788,6 +862,11 @@ resource "kibana_visualization" "china_viz" {
 			name = "kibanaSavedObjectMeta.searchSourceJSON.index"
 			type = "index-pattern"
 		},
+		{
+			id = "${kibana_search.china.id}"
+			name = "Chinese search"
+			type = "search"
+		},
 	]
 
 	visualization_state = <<EOF
@@ -858,6 +937,23 @@ resource "kibana_visualization" "china_viz" {
   ]
 }
 EOF
+}
+
+resource "kibana_search" "china" {
+	name 	        = "Chinese search"
+	description     = "Chinese search results"
+	display_columns = ["_source"]
+	sort_by_columns = ["@timestamp"]
+	search {
+		index   = "[logzioCustomerIndex]YYMMDD"
+		filters {
+			match {
+				field_name = "geo.src"
+				query      = "CN"
+				type       = "phrase"
+			}
+		}
+	}
 }
 
 `
