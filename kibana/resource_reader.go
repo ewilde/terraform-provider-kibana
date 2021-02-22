@@ -2,8 +2,10 @@ package kibana
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"reflect"
+
+	"github.com/ewilde/go-kibana"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
 func readArrayFromResource(d *schema.ResourceData, key string) []string {
@@ -57,4 +59,33 @@ func readMapFromResource(d *schema.ResourceData, key string) map[string]interfac
 	}
 
 	return nil
+}
+
+func readVisualizationReferencesFromResource(d *schema.ResourceData) []*kibana.VisualizationReferences {
+	return readVisualizationReferencesFromInterface(d.Get("references"))
+}
+
+func readVisualizationReferencesFromInterface(val interface{}) []*kibana.VisualizationReferences {
+	var visRefs []*kibana.VisualizationReferences
+	references := val.([]interface{})
+
+	for _, reference := range references {
+		ref := reference.(map[string]interface{})
+
+		visRef := &kibana.VisualizationReferences{
+			Id:   ref["id"].(string),
+			Name: ref["name"].(string),
+		}
+
+		switch ref["type"].(string) {
+		case kibana.VisualizationReferencesTypeSearch.String():
+			visRef.Type = kibana.VisualizationReferencesTypeSearch
+		case kibana.VisualizationReferencesTypeIndexPattern.String():
+			visRef.Type = kibana.VisualizationReferencesTypeIndexPattern
+		}
+
+		visRefs = append(visRefs, visRef)
+	}
+
+	return visRefs
 }

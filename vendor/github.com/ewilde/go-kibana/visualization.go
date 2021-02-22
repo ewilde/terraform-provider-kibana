@@ -10,8 +10,8 @@ import (
 )
 
 const (
-	VisualizationReferencesTypeSearch visualizationReferencesType = "search"
-	VisualizationReferencesTypeIndex  visualizationReferencesType = "index"
+	VisualizationReferencesTypeSearch       visualizationReferencesType = "search"
+	VisualizationReferencesTypeIndexPattern visualizationReferencesType = "index-pattern"
 )
 
 type visualizationReferencesType string
