@@ -9,10 +9,11 @@ require (
 	github.com/cenkalti/backoff v2.2.1+incompatible // indirect
 	github.com/containerd/continuity v0.0.0-20200928162600-f2cc35102c2a // indirect
 	github.com/ewilde/go-kibana v0.0.0-20210127120218-80bc38c8b5b8
-	github.com/google/go-cmp v0.3.1 // indirect
 	github.com/hashicorp/go-version v1.2.1 // indirect
 	github.com/hashicorp/hcl v0.0.0-20171017181929-23c074d0eceb // indirect
-	github.com/hashicorp/terraform-plugin-sdk v1.0.0
+	github.com/hashicorp/hcl2 v0.0.0-20190821123243-0c888d1241f6 // indirect
+	github.com/hashicorp/hil v0.0.0-20190212112733-ab17b08d6590 // indirect
+	github.com/hashicorp/terraform-plugin-sdk v1.16.0
 	github.com/mattn/go-colorable v0.1.1 // indirect
 	github.com/mcuadros/go-version v0.0.0-20190830083331-035f6764e8d2
 	github.com/opencontainers/runc v1.0.0-rc4.0.20171130145147-91e979501348 // indirect
@@ -28,6 +29,6 @@ require (
 )
 
 replace (
-	golang.org/x/sys => golang.org/x/sys v0.0.0-20190830141801-acfa387b8d69
 	github.com/ewilde/go-kibana => /home/peter/tools/go-kibana
+	golang.org/x/sys => golang.org/x/sys v0.0.0-20190830141801-acfa387b8d69
 )
