@@ -130,6 +130,11 @@ func resourceKibanaVisualizationRead(d *schema.ResourceData, meta interface{}) e
 				return err
 			}
 		}
+
+	}
+	err = d.Set("references", flattenVisualizationReferences(response.References))
+	if err != nil {
+		return err
 	}
 	if response.Attributes.KibanaSavedObjectMeta != nil {
 		d.Set("search_source_json", response.Attributes.KibanaSavedObjectMeta.SearchSourceJSON)
