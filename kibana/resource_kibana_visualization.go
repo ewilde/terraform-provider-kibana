@@ -34,13 +34,23 @@ func resourceKibanaVisualization() *schema.Resource {
 				Optional:    true,
 			},
 			"references": {
-				Type:        schema.TypeList,
+				Type:        schema.TypeSet,
 				Description: "A list of references, 'references' and 'saved_search_id' are mutually exclusive, you may set one or the other, but not both",
 				Optional:    true,
-				Elem: &schema.Schema{
-					Type: schema.TypeMap,
-					Elem: &schema.Schema{
-						Type: schema.TypeString,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"id": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"name": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"type": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
 					},
 				},
 			},

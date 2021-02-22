@@ -67,7 +67,7 @@ func readVisualizationReferencesFromResource(d *schema.ResourceData) []*kibana.V
 
 func readVisualizationReferencesFromInterface(val interface{}) []*kibana.VisualizationReferences {
 	var visRefs []*kibana.VisualizationReferences
-	references := val.([]interface{})
+	references := val.(*schema.Set).List()
 
 	for _, reference := range references {
 		ref := reference.(map[string]interface{})

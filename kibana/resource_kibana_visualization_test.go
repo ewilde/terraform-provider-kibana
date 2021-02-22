@@ -71,12 +71,13 @@ func TestAccKibanaVisualizationApiWithReferences(t *testing.T) {
 					testAccCheckKibanaVisualizationExists("kibana_visualization.china_viz"),
 					resource.TestCheckResourceAttr("kibana_visualization.china_viz", "name", "Chinese visualization"),
 					resource.TestCheckResourceAttr("kibana_visualization.china_viz", "description", "Chinese error visualization"),
-					resource.TestCheckResourceAttr("kibana_visualization.china_viz", "references.0.id", "logzioCustomerIndex*"),
-					resource.TestCheckResourceAttr("kibana_visualization.china_viz", "references.0.name", "kibanaSavedObjectMeta.searchSourceJSON.index"),
-					resource.TestCheckResourceAttr("kibana_visualization.china_viz", "references.0.type", kibana.VisualizationReferencesTypeIndexPattern.String()),
-					resource.TestCheckResourceAttrSet("kibana_visualization.china_viz", "references.1.id"),
-					resource.TestCheckResourceAttr("kibana_visualization.china_viz", "references.1.name", "Chinese search"),
-					resource.TestCheckResourceAttr("kibana_visualization.china_viz", "references.1.type", kibana.VisualizationReferencesTypeSearch.String()),
+					resource.TestCheckResourceAttr("kibana_visualization.china_viz", "references.#", "2"),
+					resource.TestCheckResourceAttr("kibana_visualization.china_viz", "references.3266760279.id", "logzioCustomerIndex*"),
+					resource.TestCheckResourceAttr("kibana_visualization.china_viz", "references.3266760279.name", "kibanaSavedObjectMeta.searchSourceJSON.index"),
+					resource.TestCheckResourceAttr("kibana_visualization.china_viz", "references.3266760279.type", kibana.VisualizationReferencesTypeIndexPattern.String()),
+					resource.TestCheckResourceAttr("kibana_visualization.china_viz", "references.3210730957.id", "123"),
+					resource.TestCheckResourceAttr("kibana_visualization.china_viz", "references.3210730957.name", "Chinese search"),
+					resource.TestCheckResourceAttr("kibana_visualization.china_viz", "references.3210730957.type", kibana.VisualizationReferencesTypeSearch.String()),
 				),
 			},
 			{
@@ -85,12 +86,13 @@ func TestAccKibanaVisualizationApiWithReferences(t *testing.T) {
 					testAccCheckKibanaVisualizationExists("kibana_visualization.china_viz"),
 					resource.TestCheckResourceAttr("kibana_visualization.china_viz", "name", "Chinese visualization - updated"),
 					resource.TestCheckResourceAttr("kibana_visualization.china_viz", "description", "Chinese error visualization - updated"),
-					resource.TestCheckResourceAttr("kibana_visualization.china_viz", "references.0.id", "logzioCustomerIndex*"),
-					resource.TestCheckResourceAttr("kibana_visualization.china_viz", "references.0.name", "kibanaSavedObjectMeta.searchSourceJSON.index"),
-					resource.TestCheckResourceAttr("kibana_visualization.china_viz", "references.0.type", kibana.VisualizationReferencesTypeIndexPattern.String()),
-					resource.TestCheckResourceAttrSet("kibana_visualization.china_viz", "references.1.id"),
-					resource.TestCheckResourceAttr("kibana_visualization.china_viz", "references.1.name", "Chinese search"),
-					resource.TestCheckResourceAttr("kibana_visualization.china_viz", "references.1.type", kibana.VisualizationReferencesTypeSearch.String()),
+					resource.TestCheckResourceAttr("kibana_visualization.china_viz", "references.#", "2"),
+					resource.TestCheckResourceAttr("kibana_visualization.china_viz", "references.3266760279.id", "logzioCustomerIndex*"),
+					resource.TestCheckResourceAttr("kibana_visualization.china_viz", "references.3266760279.name", "kibanaSavedObjectMeta.searchSourceJSON.index"),
+					resource.TestCheckResourceAttr("kibana_visualization.china_viz", "references.3266760279.type", kibana.VisualizationReferencesTypeIndexPattern.String()),
+					resource.TestCheckResourceAttr("kibana_visualization.china_viz", "references.3210730957.id", "123"),
+					resource.TestCheckResourceAttr("kibana_visualization.china_viz", "references.3210730957.name", "Chinese search"),
+					resource.TestCheckResourceAttr("kibana_visualization.china_viz", "references.3210730957.type", kibana.VisualizationReferencesTypeSearch.String()),
 				),
 			},
 		},
@@ -535,19 +537,16 @@ const testCreateVisualizationConfigWithReferences = `
 resource "kibana_visualization" "china_viz" {
 	name 	            = "Chinese visualization"
 	description         = "Chinese error visualization"
-
-	references = [
-		{
-			id = "logzioCustomerIndex*"
-			name = "kibanaSavedObjectMeta.searchSourceJSON.index"
-			type = "index-pattern"
-		},
-		{
-			id = "${kibana_search.china.id}"
-			name = "Chinese search"
-			type = "search"
-		},
-	]
+	references {
+		id = "logzioCustomerIndex*"
+		name = "kibanaSavedObjectMeta.searchSourceJSON.index"
+		type = "index-pattern"
+	}
+	references {
+		id = "123"
+		name = "Chinese search"
+		type = "search"
+	}
 
 	visualization_state = <<EOF
 {
@@ -618,43 +617,22 @@ resource "kibana_visualization" "china_viz" {
 }
 EOF
 }
-
-resource "kibana_search" "china" {
-	name 	        = "Chinese search"
-	description     = "Chinese search results"
-	display_columns = ["_source"]
-	sort_by_columns = ["@timestamp"]
-	search {
-		index   = "[logzioCustomerIndex]YYMMDD"
-		filters {
-			match {
-				field_name = "geo.src"
-				query      = "CN"
-				type       = "phrase"
-			}
-		}
-	}
-}
-
-
 `
 
 const testUpdateVisualizationConfigWithReferences = `
 resource "kibana_visualization" "china_viz" {
 	name 	            = "Chinese visualization - updated"
 	description         = "Chinese error visualization - updated"
-	references = [
-		{
-			id = "logzioCustomerIndex*"
-			name = "kibanaSavedObjectMeta.searchSourceJSON.index"
-			type = "index-pattern"
-		},
-		{
-			id = "${kibana_search.china.id}"
-			name = "Chinese search"
-			type = "search"
-		},
-	]
+	references {
+		id = "logzioCustomerIndex*"
+		name = "kibanaSavedObjectMeta.searchSourceJSON.index"
+		type = "index-pattern"
+	}
+	references {
+		id = "123"
+		name = "Chinese search"
+		type = "search"
+	}
 
 	visualization_state = <<EOF
 {
@@ -725,43 +703,22 @@ resource "kibana_visualization" "china_viz" {
 }
 EOF
 }
-
-resource "kibana_search" "china" {
-	name 	        = "Chinese search"
-	description     = "Chinese search results"
-	display_columns = ["_source"]
-	sort_by_columns = ["@timestamp"]
-	search {
-		index   = "[logzioCustomerIndex]YYMMDD"
-		filters {
-			match {
-				field_name = "geo.src"
-				query      = "CN"
-				type       = "phrase"
-			}
-		}
-	}
-}
-
-
 `
 
 const testCreateVisualizationLogzioConfigWithReferences = `
 resource "kibana_visualization" "china_viz" {
 	name 	            = "Chinese visualization"
 	description         = "Chinese error visualization"
-	references = [
-		{
-			id = "logzioCustomerIndex*"
-			name = "kibanaSavedObjectMeta.searchSourceJSON.index"
-			type = "index-pattern"
-		},
-		{
-			id = "${kibana_search.china.id}"
-			name = "Chinese search"
-			type = "search"
-		},
-	]
+	references {
+		id = "logzioCustomerIndex*"
+		name = "kibanaSavedObjectMeta.searchSourceJSON.index"
+		type = "index-pattern"
+	}
+	references {
+		id = "123"
+		name = "Chinese search"
+		type = "search"
+	}
 
 	visualization_state = <<EOF
 {
@@ -832,42 +789,22 @@ resource "kibana_visualization" "china_viz" {
 }
 EOF
 }
-
-resource "kibana_search" "china" {
-	name 	        = "Chinese search"
-	description     = "Chinese search results"
-	display_columns = ["_source"]
-	sort_by_columns = ["@timestamp"]
-	search {
-		index   = "[logzioCustomerIndex]YYMMDD"
-		filters {
-			match {
-				field_name = "geo.src"
-				query      = "CN"
-				type       = "phrase"
-			}
-		}
-	}
-}
-
 `
 
 const testUpdateVisualizationLogzioConfigWithReferences = `
 resource "kibana_visualization" "china_viz" {
 	name 	            = "Chinese visualization - updated"
 	description         = "Chinese error visualization - updated"
-	references = [
-		{
-			id = "logzioCustomerIndex*"
-			name = "kibanaSavedObjectMeta.searchSourceJSON.index"
-			type = "index-pattern"
-		},
-		{
-			id = "${kibana_search.china.id}"
-			name = "Chinese search"
-			type = "search"
-		},
-	]
+	references {
+		id = "logzioCustomerIndex*"
+		name = "kibanaSavedObjectMeta.searchSourceJSON.index"
+		type = "index-pattern"
+	}
+	references {
+		id = "123"
+		name = "Chinese search"
+		type = "search"
+	}
 
 	visualization_state = <<EOF
 {
@@ -937,23 +874,6 @@ resource "kibana_visualization" "china_viz" {
   ]
 }
 EOF
-}
-
-resource "kibana_search" "china" {
-	name 	        = "Chinese search"
-	description     = "Chinese search results"
-	display_columns = ["_source"]
-	sort_by_columns = ["@timestamp"]
-	search {
-		index   = "[logzioCustomerIndex]YYMMDD"
-		filters {
-			match {
-				field_name = "geo.src"
-				query      = "CN"
-				type       = "phrase"
-			}
-		}
-	}
 }
 
 `
