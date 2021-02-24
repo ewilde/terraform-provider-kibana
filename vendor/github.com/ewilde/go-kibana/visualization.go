@@ -2,15 +2,28 @@ package kibana
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	goversion "github.com/mcuadros/go-version"
 	uuid "github.com/satori/go.uuid"
 )
 
+const (
+	VisualizationReferencesTypeSearch       visualizationReferencesType = "search"
+	VisualizationReferencesTypeIndexPattern visualizationReferencesType = "index-pattern"
+)
+
+type visualizationReferencesType string
+
+func (r visualizationReferencesType) String() string {
+	return string(r)
+}
+
 type VisualizationClient interface {
 	Create(request *CreateVisualizationRequest) (*Visualization, error)
 	GetById(id string) (*Visualization, error)
+	List() ([]*Visualization, error)
 	Update(id string, request *UpdateVisualizationRequest) (*Visualization, error)
 	Delete(id string) error
 }
@@ -34,9 +47,9 @@ type Visualization struct {
 }
 
 type VisualizationReferences struct {
-	Name string `json:"name"`
-	Type string `json:"type"`
-	Id   string `json:"id"`
+	Name string                      `json:"name"`
+	Type visualizationReferencesType `json:"type"`
+	Id   string                      `json:"id"`
 }
 
 type VisualizationAttributes struct {
@@ -56,6 +69,7 @@ type VisualizationRequestBuilder struct {
 	savedSearchId         string
 	savedSearchRefName    string
 	kibanaSavedObjectMeta *SearchKibanaSavedObjectMeta
+	references            []*VisualizationReferences
 }
 
 type visualizationClient600 struct {
@@ -109,6 +123,11 @@ func (builder *VisualizationRequestBuilder) WithKibanaSavedObjectMeta(meta *Sear
 	return builder
 }
 
+func (builder *VisualizationRequestBuilder) WithReferences(refs []*VisualizationReferences) *VisualizationRequestBuilder {
+	builder.references = refs
+	return builder
+}
+
 func (builder *VisualizationRequestBuilder) Build(version string) (*CreateVisualizationRequest, error) {
 	if goversion.Compare(version, "7.0.0", "<") {
 		return &CreateVisualizationRequest{
@@ -122,7 +141,7 @@ func (builder *VisualizationRequestBuilder) Build(version string) (*CreateVisual
 			},
 		}, nil
 	} else {
-		return &CreateVisualizationRequest{
+		req := &CreateVisualizationRequest{
 			Attributes: &VisualizationAttributes{
 				Title:                 builder.title,
 				Description:           builder.description,
@@ -138,8 +157,14 @@ func (builder *VisualizationRequestBuilder) Build(version string) (*CreateVisual
 					Id:   builder.savedSearchId,
 				},
 			},
-		}, nil
+		}
 
+		if len(builder.references) > 0 {
+			req.References = builder.references
+			req.Attributes.SavedSearchRefName = ""
+		}
+
+		return req, nil
 	}
 }
 
@@ -191,6 +216,35 @@ func (api *visualizationClient600) GetById(id string) (*Visualization, error) {
 	}
 
 	return createResponse, nil
+}
+
+func (api *visualizationClient600) List() ([]*Visualization, error) {
+	response, body, err := api.client.
+		Get(api.config.KibanaBaseUri+savedObjectsPath+"_find?type=visualization&per_page=9999").
+		Set("kbn-version", api.config.KibanaVersion).
+		End()
+
+	if err != nil {
+		return nil, err[0]
+	}
+
+	if response.StatusCode >= 300 {
+		if api.config.KibanaType == KibanaTypeLogzio && response.StatusCode >= 400 { // bug in their api reports missing visualization as bad request / server error
+			response.StatusCode = 404
+		}
+		return nil, NewError(response, body, "Could not fetch visualization")
+	}
+
+	var listResp = struct {
+		SavedObjects []*Visualization `json:"saved_objects"`
+	}{}
+	var listErr error
+	listErr = json.Unmarshal([]byte(body), &listResp)
+	if listErr != nil {
+		return nil, fmt.Errorf("could not parse fields from list visualization response, error: %v", listErr)
+	}
+
+	return listResp.SavedObjects, nil
 }
 
 func (api *visualizationClient600) Update(id string, request *UpdateVisualizationRequest) (*Visualization, error) {
@@ -285,6 +339,10 @@ func (api *visualizationClient553) GetById(id string) (*Visualization, error) {
 		Type:       createResponse.Type,
 		Attributes: createResponse.Source,
 	}, nil
+}
+
+func (api *visualizationClient553) List() ([]*Visualization, error) {
+	return nil, errors.New("not implemented")
 }
 
 func (api *visualizationClient553) Update(id string, request *UpdateVisualizationRequest) (*Visualization, error) {

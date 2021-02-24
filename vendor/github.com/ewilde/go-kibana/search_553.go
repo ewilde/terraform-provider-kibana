@@ -120,6 +120,10 @@ func (api *searchClient553) GetById(id string) (*Search, error) {
 	}, nil
 }
 
+func (api *searchClient553) List() ([]*Search, error) {
+	return nil, errors.New("not implemnted")
+}
+
 func (api *searchClient553) Delete(id string) error {
 	response, body, err := api.client.
 		Delete(api.config.BuildFullPath("/%s/%s", "search", id)).

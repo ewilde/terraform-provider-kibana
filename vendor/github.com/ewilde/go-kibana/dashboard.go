@@ -2,6 +2,7 @@ package kibana
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	uuid "github.com/satori/go.uuid"
@@ -10,6 +11,7 @@ import (
 type DashboardClient interface {
 	Create(request *CreateDashboardRequest) (*Dashboard, error)
 	GetById(id string) (*Dashboard, error)
+	List() ([]*Dashboard, error)
 	Update(id string, request *UpdateDashboardRequest) (*Dashboard, error)
 	Delete(id string) error
 }
@@ -171,6 +173,35 @@ func (api *dashboardClient600) GetById(id string) (*Dashboard, error) {
 	return createResponse, nil
 }
 
+func (api *dashboardClient600) List() ([]*Dashboard, error) {
+	response, body, err := api.client.
+		Get(api.config.KibanaBaseUri+savedObjectsPath+"_find?type=dashboard&per_page=9999").
+		Set("kbn-version", api.config.KibanaVersion).
+		End()
+
+	if err != nil {
+		return nil, err[0]
+	}
+
+	if response.StatusCode >= 300 {
+		if api.config.KibanaType == KibanaTypeLogzio && response.StatusCode >= 400 { // bug in their api reports missing dashboard as bad request / server error
+			response.StatusCode = 404
+		}
+		return nil, NewError(response, body, "Could not list dashboards")
+	}
+
+	var listResp = struct {
+		SavedObjects []*Dashboard `json:"saved_objects"`
+	}{}
+	var listErr error
+	listErr = json.Unmarshal([]byte(body), &listResp)
+	if listErr != nil {
+		return nil, fmt.Errorf("could not parse fields from list dashboard response, error: %v", listErr)
+	}
+
+	return listResp.SavedObjects, nil
+}
+
 func (api *dashboardClient600) Update(id string, request *UpdateDashboardRequest) (*Dashboard, error) {
 	response, body, err := api.client.
 		Post(api.config.KibanaBaseUri+savedObjectsPath+"dashboard/"+id+"?overwrite=true").
@@ -263,6 +294,10 @@ func (api *dashboardClient553) GetById(id string) (*Dashboard, error) {
 		Type:       createResponse.Type,
 		Attributes: createResponse.Source,
 	}, nil
+}
+
+func (api *dashboardClient553) List() ([]*Dashboard, error) {
+	return nil, errors.New("not implemnted")
 }
 
 func (api *dashboardClient553) Update(id string, request *UpdateDashboardRequest) (*Dashboard, error) {

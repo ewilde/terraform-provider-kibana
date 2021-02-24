@@ -8,7 +8,8 @@ require (
 	github.com/aws/aws-sdk-go v1.25.3 // indirect
 	github.com/cenkalti/backoff v2.2.1+incompatible // indirect
 	github.com/containerd/continuity v0.0.0-20200928162600-f2cc35102c2a // indirect
-	github.com/ewilde/go-kibana v0.0.0-20210127120218-80bc38c8b5b8
+	github.com/ewilde/go-kibana v0.0.0-20210224091751-f7a3bb655958
+	github.com/fsouza/go-dockerclient v1.4.1 // indirect
 	github.com/google/go-cmp v0.3.1 // indirect
 	github.com/hashicorp/go-version v1.2.1 // indirect
 	github.com/hashicorp/hcl v0.0.0-20171017181929-23c074d0eceb // indirect
@@ -23,6 +24,7 @@ require (
 	github.com/vmihailenco/msgpack v4.0.1+incompatible // indirect
 	golang.org/x/crypto v0.0.0-20201117144127-c1f2f97bffc9 // indirect
 	golang.org/x/net v0.0.0-20210119194325-5f4716e94777 // indirect
+	gopkg.in/ory-am/dockertest.v3 v3.3.5 // indirect
 	moul.io/http2curl v1.0.0 // indirect
 
 )
