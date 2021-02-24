@@ -295,11 +295,7 @@ Set `KIBANA_DEBUG=1` to see http debug output
 $ make testacc
 ```
 
-### Adding dependencies
-This project uses [govendor](https://github.com/kardianos/govendor) to manage dependencies
+### Managing dependencies
+This project uses [Go modules](https://blog.golang.org/using-go-modules) to manage dependencies
 
-#### Add /Update a package
-`govendor fetch github.com/owner/repo`
 
-*Recursive*
-`govendor fetch github.com/owner/repo/...`
