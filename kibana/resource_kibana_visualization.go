@@ -189,7 +189,9 @@ func createKibanaVisualizationCreateRequestFromResourceData(d *schema.ResourceDa
 	}
 
 	references := readVisualizationReferencesFromResource(d)
-	request.WithReferences(references)
+	if len(references) > 0 {
+		request.WithReferences(references)
+	}
 
 	return request.Build(version)
 }

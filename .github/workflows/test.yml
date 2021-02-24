@@ -92,7 +92,7 @@ jobs:
         KIBANA_USERNAME: ${{ matrix.KIBANA_USERNAME }}
         KIBANA_PASSWORD: ${{ matrix.KIBANA_PASSWORD }}
         KIBANA_DEBUG: 1
-        TF_LOG: DEBUG
+        TF_LOG: INFO
 
       run: |
         make cibuild
