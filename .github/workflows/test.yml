@@ -91,6 +91,8 @@ jobs:
         ELK_PACK: ${{ matrix.ELK_PACK }}
         KIBANA_USERNAME: ${{ matrix.KIBANA_USERNAME }}
         KIBANA_PASSWORD: ${{ matrix.KIBANA_PASSWORD }}
+        KIBANA_DEBUG: 1
+        TF_LOG: DEBUG
 
       run: |
         make cibuild
