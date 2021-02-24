@@ -45,9 +45,45 @@ type SearchAttributes struct {
 	Description           string                       `json:"description"`
 	Hits                  int                          `json:"hits"`
 	Columns               []string                     `json:"columns"`
-	Sort                  []string                     `json:"sort"`
+	Sort                  Sort                         `json:"sort"`
 	Version               int                          `json:"version"`
 	KibanaSavedObjectMeta *SearchKibanaSavedObjectMeta `json:"kibanaSavedObjectMeta"`
+}
+
+// Sort allows unmarshalling different json structure for the sort field. In
+// newer version of Kibana this can be a nested JSON array
+// (https://github.com/elastic/kibana/pull/41918/), while in the older versions
+// it is a flat JSON array.
+type Sort []string
+
+// UnmarshalJSON tries to unmarshal the json data first into a nested array and if that fails it will try to unmarshal into a slice of string
+func (s *Sort) UnmarshalJSON(data []byte) error {
+	var nestedSlice [][]string
+
+	err := json.Unmarshal(data, &nestedSlice)
+	if err != nil {
+		var slice []string
+		err = json.Unmarshal(data, &slice)
+		if err != nil {
+			return err
+		}
+
+		*s = slice
+	}
+
+	// Successfully unmarshalled into a nested slice, which will now need to be
+	// flatten into a slice of string
+	if len(nestedSlice) > 0 && len(nestedSlice[0]) == 2 {
+		// The sort order for the old format will be
+		// taken from the first element of the new format
+		sortOrder := nestedSlice[0][1]
+		for _, sort := range nestedSlice {
+			*s = append(*s, sort[0])
+		}
+		*s = append(*s, sortOrder)
+	}
+
+	return nil
 }
 
 type searchReadResult553 struct {
