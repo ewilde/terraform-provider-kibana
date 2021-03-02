@@ -66,6 +66,16 @@ jobs:
             ELK_PACK: ""
             KIBANA_USERNAME: elastic
             KIBANA_PASSWORD: changeme
+
+          - ELK_VERSION: 7.2.1
+            KIBANA_TYPE: KibanaTypeLogzio
+            KIBANA_URI: 'https://app-eu.logz.io'
+            ELASTIC_SEARCH_PATH: '/kibana/elasticsearch/logzioCustomerKibanaIndex'
+            MAKELOGS_VERSION: '@elastic/makelogs@4.5.0'
+            USE_XPACK_SECURITY: 1
+            ELK_PACK: ""
+            KIBANA_USERNAME: elastic
+            KIBANA_PASSWORD: changeme
     steps:
     - name: Set up Go
       uses: actions/setup-go@v2.1.3
@@ -85,11 +95,15 @@ jobs:
       env:
         ELK_VERSION: ${{ matrix.ELK_VERSION }}
         KIBANA_TYPE: ${{ matrix.KIBANA_TYPE }}
+        KIBANA_URI: ${{ matrix.KIBANA_URI }}
+        ELASTIC_SEARCH_PATH: ${{ matrix.ELASTIC_SEARCH_PATH }}
         MAKELOGS_VERSION: ${{ matrix.MAKELOGS_VERSION }}
         USE_XPACK_SECURITY: ${{ matrix.USE_XPACK_SECURITY }}
         ELK_PACK: ${{ matrix.ELK_PACK }}
         KIBANA_USERNAME: ${{ matrix.KIBANA_USERNAME }}
         KIBANA_PASSWORD: ${{ matrix.KIBANA_PASSWORD }}
+        LOGZ_IO_ACCOUNT_ID_1: ${{ matrix.LOGZ_IO_ACCOUNT_ID_1 }}
+        LOGZ_IO_ACCOUNT_ID_2: ${{ matrix.LOGZ_IO_ACCOUNT_ID_2 }}
         KIBANA_DEBUG: 1
         TF_LOG: INFO
 
