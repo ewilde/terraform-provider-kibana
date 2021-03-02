@@ -86,11 +86,15 @@ jobs:
       env:
         ELK_VERSION: ${{ matrix.ELK_VERSION }}
         KIBANA_TYPE: ${{ matrix.KIBANA_TYPE }}
+        KIBANA_URI: ${{ matrix.KIBANA_URI }}
+        ELASTIC_SEARCH_PATH: ${{ matrix.ELASTIC_SEARCH_PATH }}
         MAKELOGS_VERSION: ${{ matrix.MAKELOGS_VERSION }}
         USE_XPACK_SECURITY: ${{ matrix.USE_XPACK_SECURITY }}
         ELK_PACK: ${{ matrix.ELK_PACK }}
         KIBANA_USERNAME: ${{ matrix.KIBANA_USERNAME }}
         KIBANA_PASSWORD: ${{ matrix.KIBANA_PASSWORD }}
+        LOGZ_IO_ACCOUNT_ID_1: ${{ matrix.LOGZ_IO_ACCOUNT_ID_1 }}
+        LOGZ_IO_ACCOUNT_ID_2: ${{ matrix.LOGZ_IO_ACCOUNT_ID_2 }}
         KIBANA_DEBUG: 1
         TF_LOG: INFO
 
