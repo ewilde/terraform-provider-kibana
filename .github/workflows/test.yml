@@ -58,6 +58,7 @@ jobs:
             ELK_PACK: ""
             KIBANA_USERNAME: elastic
             KIBANA_PASSWORD: changeme
+            LOGZ_CLIENT_ID: ""
 
           - ELK_VERSION: 7.3.1
             KIBANA_TYPE: KibanaTypeVanilla
@@ -66,6 +67,7 @@ jobs:
             ELK_PACK: ""
             KIBANA_USERNAME: elastic
             KIBANA_PASSWORD: changeme
+            LOGZ_CLIENT_ID: ""
 
     steps:
     - name: Set up Go
@@ -91,10 +93,9 @@ jobs:
         MAKELOGS_VERSION: ${{ matrix.MAKELOGS_VERSION }}
         USE_XPACK_SECURITY: ${{ matrix.USE_XPACK_SECURITY }}
         ELK_PACK: ${{ matrix.ELK_PACK }}
-        KIBANA_USERNAME: ${{ matrix.KIBANA_USERNAME }}
-        KIBANA_PASSWORD: ${{ matrix.KIBANA_PASSWORD }}
-        LOGZ_IO_ACCOUNT_ID_1: ${{ matrix.LOGZ_IO_ACCOUNT_ID_1 }}
-        LOGZ_IO_ACCOUNT_ID_2: ${{ matrix.LOGZ_IO_ACCOUNT_ID_2 }}
+        KIBANA_USERNAME: ${{ matrix.KIBANA_USERNAME || secrets.KIBANA_USERNAME }}
+        KIBANA_PASSWORD: ${{ matrix.KIBANA_PASSWORD || secrets.KIBANA_PASSWORD }}
+        LOGZ_CLIENT_ID: ${{ matrix.LOGZ_CLIENT_ID }}
         KIBANA_DEBUG: 1
         TF_LOG: INFO
 
