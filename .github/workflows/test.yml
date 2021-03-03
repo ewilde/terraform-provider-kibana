@@ -58,7 +58,6 @@ jobs:
             ELK_PACK: ""
             KIBANA_USERNAME: elastic
             KIBANA_PASSWORD: changeme
-            LOGZ_CLIENT_ID: ""
 
           - ELK_VERSION: 7.3.1
             KIBANA_TYPE: KibanaTypeVanilla
@@ -67,12 +66,46 @@ jobs:
             ELK_PACK: ""
             KIBANA_USERNAME: elastic
             KIBANA_PASSWORD: changeme
-            LOGZ_CLIENT_ID: ""
 
+    steps:
+    - name: Set up Go
+      uses: actions/setup-go@v2.1.3
+      with:
+        go-version: '1.15'
+      id: go
+
+    - name: Check out code into the Go module directory
+      uses: actions/checkout@v2.3.3
+
+    - name: Get dependencies
+      run: |
+        go mod download
+
+    - name: TF acceptance tests
+      timeout-minutes: 10
+      env:
+        ELK_VERSION: ${{ matrix.ELK_VERSION }}
+        KIBANA_TYPE: ${{ matrix.KIBANA_TYPE }}
+        MAKELOGS_VERSION: ${{ matrix.MAKELOGS_VERSION }}
+        USE_XPACK_SECURITY: ${{ matrix.USE_XPACK_SECURITY }}
+        ELK_PACK: ${{ matrix.ELK_PACK }}
+        KIBANA_USERNAME: ${{ matrix.KIBANA_USERNAME }}
+        KIBANA_PASSWORD: ${{ matrix.KIBANA_PASSWORD }}
+
+      run: |
+        make cibuild
+
+  test-logzio:
+    name: Matrix Test
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
           - ELK_VERSION: 7.2.1
             KIBANA_TYPE: KibanaTypeLogzio
-            KIBANA_URI: 'https://app-eu.logz.io'
-            ELASTIC_SEARCH_PATH: '/kibana/elasticsearch/logzioCustomerKibanaIndex'
             MAKELOGS_VERSION: '@elastic/makelogs@4.5.0'
             USE_XPACK_SECURITY: 1
             ELK_PACK: ""
@@ -95,14 +128,14 @@ jobs:
       env:
         ELK_VERSION: ${{ matrix.ELK_VERSION }}
         KIBANA_TYPE: ${{ matrix.KIBANA_TYPE }}
-        KIBANA_URI: ${{ matrix.KIBANA_URI }}
-        ELASTIC_SEARCH_PATH: ${{ matrix.ELASTIC_SEARCH_PATH }}
+        KIBANA_URI: 'https://app-eu.logz.io'
+        ELASTIC_SEARCH_PATH: '/kibana/elasticsearch/logzioCustomerKibanaIndex'
         MAKELOGS_VERSION: ${{ matrix.MAKELOGS_VERSION }}
         USE_XPACK_SECURITY: ${{ matrix.USE_XPACK_SECURITY }}
         ELK_PACK: ${{ matrix.ELK_PACK }}
-        KIBANA_USERNAME: ${{ matrix.KIBANA_USERNAME || secrets.KIBANA_USERNAME }}
-        KIBANA_PASSWORD: ${{ matrix.KIBANA_PASSWORD || secrets.KIBANA_PASSWORD }}
-        LOGZ_CLIENT_ID: ${{ matrix.LOGZ_CLIENT_ID }}
+        KIBANA_USERNAME: ${{ secrets.KIBANA_USERNAME }}
+        KIBANA_PASSWORD: ${{ secrets.KIBANA_PASSWORD }}
+        LOGZ_CLIENT_ID: ${{ secrets.LOGZ_CLIENT_ID }}
         KIBANA_DEBUG: 1
         TF_LOG: INFO
 
