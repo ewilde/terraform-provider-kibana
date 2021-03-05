@@ -136,7 +136,8 @@ jobs:
         KIBANA_USERNAME: ${{ secrets.KIBANA_USERNAME }}
         KIBANA_PASSWORD: ${{ secrets.KIBANA_PASSWORD }}
         LOGZ_CLIENT_ID: ${{ secrets.LOGZ_CLIENT_ID }}
-        LOGZ_MFA_SECRET: ${{ secrets.LOGZ_MFA_SECRET }}
+        LOGZ_IO_ACCOUNT_ID_1: 16533
+        LOGZ_IO_ACCOUNT_ID_2: 14942
         KIBANA_DEBUG: 1
         TF_LOG: INFO
 
