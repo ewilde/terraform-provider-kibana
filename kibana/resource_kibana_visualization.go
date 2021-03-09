@@ -30,8 +30,29 @@ func resourceKibanaVisualization() *schema.Resource {
 			},
 			"saved_search_id": {
 				Type:        schema.TypeString,
-				Description: "Saved search id this visualization is based on",
-				Required:    true,
+				Description: "Saved search id this visualization is based on, 'references' and 'saved_search_id' are mutually exclusive, you may set one or the other, but not both",
+				Optional:    true,
+			},
+			"references": {
+				Type:        schema.TypeSet,
+				Description: "A list of references, 'references' and 'saved_search_id' are mutually exclusive, you may set one or the other, but not both",
+				Optional:    true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"id": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"name": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"type": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+					},
+				},
 			},
 			"visualization_state": {
 				Type:        schema.TypeString,
@@ -100,8 +121,14 @@ func resourceKibanaVisualizationRead(d *schema.ResourceData, meta interface{}) e
 	if goversion.Compare(version, "7.0.0", "<") {
 		d.Set("saved_search_id", response.Attributes.SavedSearchId)
 	} else {
-		if len(response.References) == 1 {
+		if len(response.References) == 1 &&
+			response.References[0].Type == kibana.VisualizationReferencesTypeSearch {
 			d.Set("saved_search_id", response.References[0].Id)
+		} else {
+			err = d.Set("references", flattenVisualizationReferences(response.References))
+			if err != nil {
+				return err
+			}
 		}
 	}
 	if response.Attributes.KibanaSavedObjectMeta != nil {
@@ -156,5 +183,32 @@ func createKibanaVisualizationCreateRequestFromResourceData(d *schema.ResourceDa
 		request.WithKibanaSavedObjectMeta(&kibana.SearchKibanaSavedObjectMeta{SearchSourceJSON: searchMeta})
 	}
 
+	references := readVisualizationReferencesFromResource(d)
+	if len(references) > 0 {
+		request.WithReferences(references)
+	}
+
 	return request.Build(version)
+}
+
+func flattenVisualizationReferences(refs []*kibana.VisualizationReferences) []interface{} {
+	if refs == nil {
+		return nil
+	}
+
+	out := make([]interface{}, 0)
+
+	for _, ref := range refs {
+		if ref == nil {
+			continue
+		}
+
+		out = append(out, map[string]interface{}{
+			"id":   ref.Id,
+			"name": ref.Name,
+			"type": ref.Type.String(),
+		})
+	}
+
+	return out
 }

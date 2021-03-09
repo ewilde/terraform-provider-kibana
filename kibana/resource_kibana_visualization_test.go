@@ -2,10 +2,12 @@ package kibana
 
 import (
 	"fmt"
+	"testing"
+
 	"github.com/ewilde/go-kibana"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"testing"
+	goversion "github.com/mcuadros/go-version"
 
 	"strings"
 )
@@ -18,6 +20,16 @@ var testVisualizationCreate = map[kibana.KibanaType]string{
 var testVisualizationUpdate = map[kibana.KibanaType]string{
 	kibana.KibanaTypeVanilla: testUpdateVisualizationConfig,
 	kibana.KibanaTypeLogzio:  testUpdateVisualizationLogzioConfig,
+}
+
+var testVisualizationCreateWithReferences = map[kibana.KibanaType]string{
+	kibana.KibanaTypeVanilla: testCreateVisualizationConfigWithReferences,
+	kibana.KibanaTypeLogzio:  testCreateVisualizationLogzioConfigWithReferences,
+}
+
+var testVisualizationUpdateWithReferences = map[kibana.KibanaType]string{
+	kibana.KibanaTypeVanilla: testUpdateVisualizationConfigWithReferences,
+	kibana.KibanaTypeLogzio:  testUpdateVisualizationLogzioConfigWithReferences,
 }
 
 func TestAccKibanaVisualizationApi(t *testing.T) {
@@ -39,6 +51,48 @@ func TestAccKibanaVisualizationApi(t *testing.T) {
 					testAccCheckKibanaVisualizationExists("kibana_visualization.china_viz"),
 					resource.TestCheckResourceAttr("kibana_visualization.china_viz", "name", "Chinese visualization - updated"),
 					resource.TestCheckResourceAttr("kibana_visualization.china_viz", "description", "Chinese error visualization - updated"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccKibanaVisualizationApiWithReferences(t *testing.T) {
+	if goversion.Compare(testConfig.KibanaVersion, "7.0.0", "<") {
+		t.SkipNow()
+	}
+	resource.Test(t, resource.TestCase{
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckKibanaVisualizationDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testVisualizationCreateWithReferences[testConfig.KibanaType],
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckKibanaVisualizationExists("kibana_visualization.china_viz"),
+					resource.TestCheckResourceAttr("kibana_visualization.china_viz", "name", "Chinese visualization"),
+					resource.TestCheckResourceAttr("kibana_visualization.china_viz", "description", "Chinese error visualization"),
+					resource.TestCheckResourceAttr("kibana_visualization.china_viz", "references.#", "2"),
+					resource.TestCheckResourceAttr("kibana_visualization.china_viz", "references.3266760279.id", "logzioCustomerIndex*"),
+					resource.TestCheckResourceAttr("kibana_visualization.china_viz", "references.3266760279.name", "kibanaSavedObjectMeta.searchSourceJSON.index"),
+					resource.TestCheckResourceAttr("kibana_visualization.china_viz", "references.3266760279.type", kibana.VisualizationReferencesTypeIndexPattern.String()),
+					resource.TestCheckResourceAttr("kibana_visualization.china_viz", "references.3210730957.id", "123"),
+					resource.TestCheckResourceAttr("kibana_visualization.china_viz", "references.3210730957.name", "Chinese search"),
+					resource.TestCheckResourceAttr("kibana_visualization.china_viz", "references.3210730957.type", kibana.VisualizationReferencesTypeSearch.String()),
+				),
+			},
+			{
+				Config: testVisualizationUpdateWithReferences[testConfig.KibanaType],
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckKibanaVisualizationExists("kibana_visualization.china_viz"),
+					resource.TestCheckResourceAttr("kibana_visualization.china_viz", "name", "Chinese visualization - updated"),
+					resource.TestCheckResourceAttr("kibana_visualization.china_viz", "description", "Chinese error visualization - updated"),
+					resource.TestCheckResourceAttr("kibana_visualization.china_viz", "references.#", "2"),
+					resource.TestCheckResourceAttr("kibana_visualization.china_viz", "references.3266760279.id", "logzioCustomerIndex*"),
+					resource.TestCheckResourceAttr("kibana_visualization.china_viz", "references.3266760279.name", "kibanaSavedObjectMeta.searchSourceJSON.index"),
+					resource.TestCheckResourceAttr("kibana_visualization.china_viz", "references.3266760279.type", kibana.VisualizationReferencesTypeIndexPattern.String()),
+					resource.TestCheckResourceAttr("kibana_visualization.china_viz", "references.3210730957.id", "123"),
+					resource.TestCheckResourceAttr("kibana_visualization.china_viz", "references.3210730957.name", "Chinese search"),
+					resource.TestCheckResourceAttr("kibana_visualization.china_viz", "references.3210730957.type", kibana.VisualizationReferencesTypeSearch.String()),
 				),
 			},
 		},
@@ -477,4 +531,349 @@ resource "kibana_search" "china" {
 		}
 	}
 }
+`
+
+const testCreateVisualizationConfigWithReferences = `
+resource "kibana_visualization" "china_viz" {
+	name 	            = "Chinese visualization"
+	description         = "Chinese error visualization"
+	references {
+		id = "logzioCustomerIndex*"
+		name = "kibanaSavedObjectMeta.searchSourceJSON.index"
+		type = "index-pattern"
+	}
+	references {
+		id = "123"
+		name = "Chinese search"
+		type = "search"
+	}
+
+	visualization_state = <<EOF
+{
+  "title": "Chinese search",
+  "type": "gauge",
+  "params": {
+	"type": "gauge",
+	"addTooltip": true,
+	"addLegend": true,
+	"gauge": {
+	  "verticalSplit": false,
+	  "extendRange": true,
+	  "percentageMode": false,
+	  "gaugeType": "Arc",
+	  "gaugeStyle": "Full",
+	  "backStyle": "Full",
+	  "orientation": "vertical",
+	  "colorSchema": "Green to Red",
+	  "gaugeColorMode": "Labels",
+	  "colorsRange": [
+		{
+		  "from": 0,
+		  "to": 50
+		},
+		{
+		  "from": 50,
+		  "to": 75
+		},
+		{
+		  "from": 75,
+		  "to": 100
+		}
+	  ],
+	  "invertColors": false,
+	  "labels": {
+		"show": true,
+		"color": "black"
+	  },
+	  "scale": {
+		"show": true,
+		"labels": false,
+		"color": "#333"
+	  },
+	  "type": "meter",
+	  "style": {
+		"bgWidth": 0.9,
+		"width": 0.9,
+		"mask": false,
+		"bgMask": false,
+		"maskBars": 50,
+		"bgFill": "#eee",
+		"bgColor": false,
+		"subText": "",
+		"fontSize": 60,
+		"labelColor": true
+	  }
+	}
+  },
+  "aggs": [
+	{
+	  "id": "1",
+	  "enabled": true,
+	  "type": "count",
+	  "schema": "metric",
+	  "params": {}
+	}
+  ]
+}
+EOF
+}
+`
+
+const testUpdateVisualizationConfigWithReferences = `
+resource "kibana_visualization" "china_viz" {
+	name 	            = "Chinese visualization - updated"
+	description         = "Chinese error visualization - updated"
+	references {
+		id = "logzioCustomerIndex*"
+		name = "kibanaSavedObjectMeta.searchSourceJSON.index"
+		type = "index-pattern"
+	}
+	references {
+		id = "123"
+		name = "Chinese search"
+		type = "search"
+	}
+
+	visualization_state = <<EOF
+{
+  "title": "Chinese search",
+  "type": "gauge",
+  "params": {
+	"type": "gauge",
+	"addTooltip": true,
+	"addLegend": true,
+	"gauge": {
+	  "verticalSplit": false,
+	  "extendRange": true,
+	  "percentageMode": false,
+	  "gaugeType": "Arc",
+	  "gaugeStyle": "Full",
+	  "backStyle": "Full",
+	  "orientation": "vertical",
+	  "colorSchema": "Green to Red",
+	  "gaugeColorMode": "Labels",
+	  "colorsRange": [
+		{
+		  "from": 0,
+		  "to": 50
+		},
+		{
+		  "from": 50,
+		  "to": 75
+		},
+		{
+		  "from": 75,
+		  "to": 100
+		}
+	  ],
+	  "invertColors": false,
+	  "labels": {
+		"show": true,
+		"color": "black"
+	  },
+	  "scale": {
+		"show": true,
+		"labels": false,
+		"color": "#333"
+	  },
+	  "type": "meter",
+	  "style": {
+		"bgWidth": 0.9,
+		"width": 0.9,
+		"mask": false,
+		"bgMask": false,
+		"maskBars": 50,
+		"bgFill": "#eee",
+		"bgColor": false,
+		"subText": "",
+		"fontSize": 60,
+		"labelColor": true
+	  }
+	}
+  },
+  "aggs": [
+	{
+	  "id": "1",
+	  "enabled": true,
+	  "type": "count",
+	  "schema": "metric",
+	  "params": {}
+	}
+  ]
+}
+EOF
+}
+`
+
+const testCreateVisualizationLogzioConfigWithReferences = `
+resource "kibana_visualization" "china_viz" {
+	name 	            = "Chinese visualization"
+	description         = "Chinese error visualization"
+	references {
+		id = "logzioCustomerIndex*"
+		name = "kibanaSavedObjectMeta.searchSourceJSON.index"
+		type = "index-pattern"
+	}
+	references {
+		id = "123"
+		name = "Chinese search"
+		type = "search"
+	}
+
+	visualization_state = <<EOF
+{
+  "title": "Chinese search",
+  "type": "gauge",
+  "params": {
+	"type": "gauge",
+	"addTooltip": true,
+	"addLegend": true,
+	"gauge": {
+	  "verticalSplit": false,
+	  "extendRange": true,
+	  "percentageMode": false,
+	  "gaugeType": "Arc",
+	  "gaugeStyle": "Full",
+	  "backStyle": "Full",
+	  "orientation": "vertical",
+	  "colorSchema": "Green to Red",
+	  "gaugeColorMode": "Labels",
+	  "colorsRange": [
+		{
+		  "from": 0,
+		  "to": 50
+		},
+		{
+		  "from": 50,
+		  "to": 75
+		},
+		{
+		  "from": 75,
+		  "to": 100
+		}
+	  ],
+	  "invertColors": false,
+	  "labels": {
+		"show": true,
+		"color": "black"
+	  },
+	  "scale": {
+		"show": true,
+		"labels": false,
+		"color": "#333"
+	  },
+	  "type": "meter",
+	  "style": {
+		"bgWidth": 0.9,
+		"width": 0.9,
+		"mask": false,
+		"bgMask": false,
+		"maskBars": 50,
+		"bgFill": "#eee",
+		"bgColor": false,
+		"subText": "",
+		"fontSize": 60,
+		"labelColor": true
+	  }
+	}
+  },
+  "aggs": [
+	{
+	  "id": "1",
+	  "enabled": true,
+	  "type": "count",
+	  "schema": "metric",
+	  "params": {}
+	}
+  ]
+}
+EOF
+}
+`
+
+const testUpdateVisualizationLogzioConfigWithReferences = `
+resource "kibana_visualization" "china_viz" {
+	name 	            = "Chinese visualization - updated"
+	description         = "Chinese error visualization - updated"
+	references {
+		id = "logzioCustomerIndex*"
+		name = "kibanaSavedObjectMeta.searchSourceJSON.index"
+		type = "index-pattern"
+	}
+	references {
+		id = "123"
+		name = "Chinese search"
+		type = "search"
+	}
+
+	visualization_state = <<EOF
+{
+  "title": "Chinese search",
+  "type": "gauge",
+  "params": {
+	"type": "gauge",
+	"addTooltip": true,
+	"addLegend": true,
+	"gauge": {
+	  "verticalSplit": false,
+	  "extendRange": true,
+	  "percentageMode": false,
+	  "gaugeType": "Arc",
+	  "gaugeStyle": "Full",
+	  "backStyle": "Full",
+	  "orientation": "vertical",
+	  "colorSchema": "Green to Red",
+	  "gaugeColorMode": "Labels",
+	  "colorsRange": [
+		{
+		  "from": 0,
+		  "to": 50
+		},
+		{
+		  "from": 50,
+		  "to": 75
+		},
+		{
+		  "from": 75,
+		  "to": 100
+		}
+	  ],
+	  "invertColors": false,
+	  "labels": {
+		"show": true,
+		"color": "black"
+	  },
+	  "scale": {
+		"show": true,
+		"labels": false,
+		"color": "#333"
+	  },
+	  "type": "meter",
+	  "style": {
+		"bgWidth": 0.9,
+		"width": 0.9,
+		"mask": false,
+		"bgMask": false,
+		"maskBars": 50,
+		"bgFill": "#eee",
+		"bgColor": false,
+		"subText": "",
+		"fontSize": 60,
+		"labelColor": true
+	  }
+	}
+  },
+  "aggs": [
+	{
+	  "id": "1",
+	  "enabled": true,
+	  "type": "count",
+	  "schema": "metric",
+	  "params": {}
+	}
+  ]
+}
+EOF
+}
+
 `
