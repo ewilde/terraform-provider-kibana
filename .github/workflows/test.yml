@@ -107,8 +107,6 @@ jobs:
           - ELK_VERSION: 7.2.1
             KIBANA_TYPE: KibanaTypeLogzio
             MAKELOGS_VERSION: '@elastic/makelogs@4.5.0'
-            USE_XPACK_SECURITY: 1
-            ELK_PACK: ""
     steps:
     - name: Set up Go
       uses: actions/setup-go@v2.1.3
@@ -131,8 +129,6 @@ jobs:
         KIBANA_URI: 'https://app-eu.logz.io'
         ELASTIC_SEARCH_PATH: '/kibana/elasticsearch/logzioCustomerKibanaIndex'
         MAKELOGS_VERSION: ${{ matrix.MAKELOGS_VERSION }}
-        USE_XPACK_SECURITY: ${{ matrix.USE_XPACK_SECURITY }}
-        ELK_PACK: ${{ matrix.ELK_PACK }}
         KIBANA_USERNAME: ${{ secrets.KIBANA_USERNAME }}
         KIBANA_PASSWORD: ${{ secrets.KIBANA_PASSWORD }}
         LOGZ_CLIENT_ID: ${{ secrets.LOGZ_CLIENT_ID }}
