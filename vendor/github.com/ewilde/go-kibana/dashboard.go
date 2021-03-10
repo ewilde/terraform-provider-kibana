@@ -8,6 +8,18 @@ import (
 	uuid "github.com/satori/go.uuid"
 )
 
+// Enums for DashboardReferencesType
+const (
+	DashboardReferencesTypeSearch        dashboardReferencesType = "search"
+	DashboardReferencesTypeVisualization dashboardReferencesType = "visualization"
+)
+
+type dashboardReferencesType string
+
+func (r dashboardReferencesType) String() string {
+	return string(r)
+}
+
 type DashboardClient interface {
 	Create(request *CreateDashboardRequest) (*Dashboard, error)
 	GetById(id string) (*Dashboard, error)
@@ -17,18 +29,27 @@ type DashboardClient interface {
 }
 
 type CreateDashboardRequest struct {
-	Attributes *DashboardAttributes `json:"attributes"`
+	Attributes *DashboardAttributes   `json:"attributes"`
+	References []*DashboardReferences `json:"references,omitempty"`
 }
 
 type UpdateDashboardRequest struct {
-	Attributes *DashboardAttributes `json:"attributes"`
+	Attributes *DashboardAttributes   `json:"attributes"`
+	References []*DashboardReferences `json:"references,omitempty"`
 }
 
 type Dashboard struct {
-	Id         string               `json:"id"`
-	Type       string               `json:"type"`
-	Version    version              `json:"version"`
-	Attributes *DashboardAttributes `json:"attributes"`
+	Id         string                 `json:"id"`
+	Type       string                 `json:"type"`
+	Version    version                `json:"version"`
+	Attributes *DashboardAttributes   `json:"attributes"`
+	References []*DashboardReferences `json:"references,omitempty"`
+}
+
+type DashboardReferences struct {
+	Name string                  `json:"name"`
+	Type dashboardReferencesType `json:"type"`
+	Id   string                  `json:"id"`
 }
 
 type DashboardAttributes struct {
@@ -50,6 +71,7 @@ type DashboardRequestBuilder struct {
 	uiStateJson           string
 	timeRestore           bool
 	kibanaSavedObjectMeta *SearchKibanaSavedObjectMeta
+	references            []*DashboardReferences
 }
 
 type dashboardClient600 struct {
@@ -108,6 +130,11 @@ func (builder *DashboardRequestBuilder) WithKibanaSavedObjectMeta(meta *SearchKi
 	return builder
 }
 
+func (builder *DashboardRequestBuilder) WithReferences(refs []*DashboardReferences) *DashboardRequestBuilder {
+	builder.references = refs
+	return builder
+}
+
 func (builder *DashboardRequestBuilder) Build() (*CreateDashboardRequest, error) {
 
 	return &CreateDashboardRequest{
@@ -120,6 +147,7 @@ func (builder *DashboardRequestBuilder) Build() (*CreateDashboardRequest, error)
 			TimeRestore:           builder.timeRestore,
 			KibanaSavedObjectMeta: builder.kibanaSavedObjectMeta,
 		},
+		References: builder.references,
 	}, nil
 }
 

@@ -61,6 +61,35 @@ func readMapFromResource(d *schema.ResourceData, key string) map[string]interfac
 	return nil
 }
 
+func readDashboardReferencesFromResource(d *schema.ResourceData) []*kibana.DashboardReferences {
+	return readDashboardReferencesFromInterface(d.Get("references"))
+}
+
+func readDashboardReferencesFromInterface(val interface{}) []*kibana.DashboardReferences {
+	var visRefs []*kibana.DashboardReferences
+	references := val.(*schema.Set).List()
+
+	for _, reference := range references {
+		ref := reference.(map[string]interface{})
+
+		visRef := &kibana.DashboardReferences{
+			Id:   ref["id"].(string),
+			Name: ref["name"].(string),
+		}
+
+		switch ref["type"].(string) {
+		case kibana.DashboardReferencesTypeSearch.String():
+			visRef.Type = kibana.DashboardReferencesTypeSearch
+		case kibana.DashboardReferencesTypeVisualization.String():
+			visRef.Type = kibana.DashboardReferencesTypeVisualization
+		}
+
+		visRefs = append(visRefs, visRef)
+	}
+
+	return visRefs
+}
+
 func readVisualizationReferencesFromResource(d *schema.ResourceData) []*kibana.VisualizationReferences {
 	return readVisualizationReferencesFromInterface(d.Get("references"))
 }

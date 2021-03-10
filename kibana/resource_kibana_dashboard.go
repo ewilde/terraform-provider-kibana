@@ -2,10 +2,11 @@ package kibana
 
 import (
 	"fmt"
+	"log"
+
 	"github.com/ewilde/go-kibana"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
-	"log"
 )
 
 func resourceKibanaDashboard() *schema.Resource {
@@ -88,6 +89,27 @@ func resourceKibanaDashboard() *schema.Resource {
 					return newJson == oldJson
 				},
 			},
+			"references": {
+				Type:        schema.TypeSet,
+				Description: "A list of references",
+				Optional:    true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"id": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"name": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"type": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -125,6 +147,7 @@ func resourceKibanaDashboardRead(d *schema.ResourceData, meta interface{}) error
 	d.Set("options_json", response.Attributes.OptionsJson)
 	d.Set("ui_state_json", response.Attributes.UiStateJSON)
 	d.Set("time_restore", response.Attributes.TimeRestore)
+	d.Set("references", flattenDashboardReferences(response.References))
 
 	if response.Attributes.KibanaSavedObjectMeta != nil {
 		d.Set("search_source_json", response.Attributes.KibanaSavedObjectMeta.SearchSourceJSON)
@@ -141,7 +164,7 @@ func resourceKibanaDashboardUpdate(d *schema.ResourceData, meta interface{}) err
 
 	log.Printf("[INFO] Creating Kibana dashboard %s", dashboardRequest.Attributes.Title)
 
-	_, err = meta.(*kibana.KibanaClient).Dashboard().Update(d.Id(), &kibana.UpdateDashboardRequest{Attributes: dashboardRequest.Attributes})
+	_, err = meta.(*kibana.KibanaClient).Dashboard().Update(d.Id(), &kibana.UpdateDashboardRequest{Attributes: dashboardRequest.Attributes, References: dashboardRequest.References})
 
 	if err != nil {
 		return fmt.Errorf("failed to update kibana saved dashboard: %v error: %v", dashboardRequest, err)
@@ -178,5 +201,32 @@ func createKibanaDashboardCreateRequestFromResourceData(d *schema.ResourceData) 
 		request.WithKibanaSavedObjectMeta(&kibana.SearchKibanaSavedObjectMeta{SearchSourceJSON: searchMeta})
 	}
 
+	references := readDashboardReferencesFromResource(d)
+	if len(references) > 0 {
+		request.WithReferences(references)
+	}
+
 	return request.Build()
+}
+
+func flattenDashboardReferences(refs []*kibana.DashboardReferences) []interface{} {
+	if refs == nil {
+		return nil
+	}
+
+	out := make([]interface{}, 0)
+
+	for _, ref := range refs {
+		if ref == nil {
+			continue
+		}
+
+		out = append(out, map[string]interface{}{
+			"id":   ref.Id,
+			"name": ref.Name,
+			"type": ref.Type.String(),
+		})
+	}
+
+	return out
 }

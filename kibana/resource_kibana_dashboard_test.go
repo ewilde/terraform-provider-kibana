@@ -2,10 +2,12 @@ package kibana
 
 import (
 	"fmt"
+	"testing"
+
 	"github.com/ewilde/go-kibana"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"testing"
+	goversion "github.com/mcuadros/go-version"
 
 	"strings"
 )
@@ -18,6 +20,16 @@ var testDashboardCreate = map[kibana.KibanaType]string{
 var testDashboardUpdate = map[kibana.KibanaType]string{
 	kibana.KibanaTypeVanilla: fmt.Sprintf(testUpdateDashboardConfig, "${data.kibana_index.main.id}", dataKibanaIndex),
 	kibana.KibanaTypeLogzio:  fmt.Sprintf(testUpdateDashboardConfig, "[logzioCustomerIndex]YYMMDD", ""),
+}
+
+var testDashboardCreateWithReferences = map[kibana.KibanaType]string{
+	kibana.KibanaTypeVanilla: fmt.Sprintf(testCreateDashboardConfigWithReferences, "${data.kibana_index.main.id}", dataKibanaIndex),
+	kibana.KibanaTypeLogzio:  fmt.Sprintf(testCreateDashboardConfigWithReferences, "[logzioCustomerIndex]YYMMDD", ""),
+}
+
+var testDashboardUpdateWithReferences = map[kibana.KibanaType]string{
+	kibana.KibanaTypeVanilla: fmt.Sprintf(testUpdateDashboardConfigWithReferences, "${data.kibana_index.main.id}", dataKibanaIndex),
+	kibana.KibanaTypeLogzio:  fmt.Sprintf(testUpdateDashboardConfigWithReferences, "[logzioCustomerIndex]YYMMDD", ""),
 }
 
 func TestAccKibanaDashboardApi(t *testing.T) {
@@ -39,6 +51,36 @@ func TestAccKibanaDashboardApi(t *testing.T) {
 					testAccCheckKibanaDashboardExists("kibana_dashboard.china_dash"),
 					resource.TestCheckResourceAttr("kibana_dashboard.china_dash", "name", "Chinese dashboard - updated"),
 					resource.TestCheckResourceAttr("kibana_dashboard.china_dash", "description", "Chinese dashboard description - updated"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccKibanaDashboardApiWithReferences(t *testing.T) {
+	if goversion.Compare(testConfig.KibanaVersion, "7.0.0", "<") {
+		t.SkipNow()
+	}
+	resource.Test(t, resource.TestCase{
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckKibanaDashboardDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testDashboardCreateWithReferences[testConfig.KibanaType],
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckKibanaDashboardExists("kibana_dashboard.china_dash"),
+					resource.TestCheckResourceAttr("kibana_dashboard.china_dash", "name", "Chinese dashboard"),
+					resource.TestCheckResourceAttr("kibana_dashboard.china_dash", "description", "Chinese dashboard description"),
+					resource.TestCheckResourceAttr("kibana_dashboard.china_dash", "references.#", "2"),
+				),
+			},
+			{
+				Config: testDashboardUpdateWithReferences[testConfig.KibanaType],
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckKibanaDashboardExists("kibana_dashboard.china_dash"),
+					resource.TestCheckResourceAttr("kibana_dashboard.china_dash", "name", "Chinese dashboard - updated"),
+					resource.TestCheckResourceAttr("kibana_dashboard.china_dash", "description", "Chinese dashboard description - updated"),
+					resource.TestCheckResourceAttr("kibana_dashboard.china_dash", "references.#", "2"),
 				),
 			},
 		},
@@ -331,6 +373,284 @@ resource "kibana_visualization" "china_viz" {
       "schema": "metric",
       "params": {}
     }
+  ]
+}
+EOF
+}
+
+resource "kibana_search" "china" {
+	name 	        = "Chinese search"
+	description     = "Chinese search results"
+	display_columns = ["_source"]
+	sort_by_columns = ["@timestamp"]
+	search {
+		index   = "%s"
+		filters {
+			match {
+				field_name = "geo.src"
+				query      = "CN"
+				type       = "phrase"
+			}
+		}
+	}
+}
+
+%s
+`
+const testCreateDashboardConfigWithReferences = `
+resource "kibana_dashboard" "china_dash" {
+	name = "Chinese dashboard"
+	description = "Chinese dashboard description"
+	references {
+		id = "${kibana_visualization.china_viz.id}"
+		name = "panel_0"
+		type = "visualization"
+	}
+	references {
+		id = "${kibana_search.china.id}"
+		name = "panel_1"
+		type = "search"
+	}
+	panels_json = <<EOF
+[
+  {
+	"gridData": {
+	  "w": 6,
+	  "h": 3,
+	  "x": 0,
+	  "y": 0,
+	  "i": "1"
+	},
+	"version": "7.2.1",
+	"panelIndex": "1",
+	"panelRefName": "panel_0"
+  },
+  {
+	"gridData": {
+	  "w": 6,
+	  "h": 3,
+	  "x": 6,
+	  "y": 0,
+	  "i": "2"
+	},
+	"version": "7.2.1",
+	"panelIndex": "2",
+	"panelRefName": "panel_1"
+  }
+]
+EOF
+}
+
+
+resource "kibana_visualization" "china_viz" {
+	name 	            = "Chinese visualization"
+	description         = "Chinese error visualization"
+	saved_search_id     = "${kibana_search.china.id}"
+	visualization_state = <<EOF
+{
+  "title": "Chinese search",
+  "type": "gauge",
+  "params": {
+	"type": "gauge",
+	"addTooltip": true,
+	"addLegend": true,
+	"gauge": {
+	  "verticalSplit": false,
+	  "extendRange": true,
+	  "percentageMode": false,
+	  "gaugeType": "Arc",
+	  "gaugeStyle": "Full",
+	  "backStyle": "Full",
+	  "orientation": "vertical",
+	  "colorSchema": "Green to Red",
+	  "gaugeColorMode": "Labels",
+	  "colorsRange": [
+		{
+		  "from": 0,
+		  "to": 50
+		},
+		{
+		  "from": 50,
+		  "to": 75
+		},
+		{
+		  "from": 75,
+		  "to": 100
+		}
+	  ],
+	  "invertColors": false,
+	  "labels": {
+		"show": true,
+		"color": "black"
+	  },
+	  "scale": {
+		"show": true,
+		"labels": false,
+		"color": "#333"
+	  },
+	  "type": "meter",
+	  "style": {
+		"bgWidth": 0.9,
+		"width": 0.9,
+		"mask": false,
+		"bgMask": false,
+		"maskBars": 50,
+		"bgFill": "#eee",
+		"bgColor": false,
+		"subText": "",
+		"fontSize": 60,
+		"labelColor": true
+	  }
+	}
+  },
+  "aggs": [
+	{
+	  "id": "1",
+	  "enabled": true,
+	  "type": "count",
+	  "schema": "metric",
+	  "params": {}
+	}
+  ]
+}
+EOF
+}
+
+resource "kibana_search" "china" {
+	name 	        = "Chinese search"
+	description     = "Chinese search results"
+	display_columns = ["_source"]
+	sort_by_columns = ["@timestamp"]
+	search {
+		index   = "%s"
+		filters {
+			match {
+				field_name = "geo.src"
+				query      = "CN"
+				type       = "phrase"
+			}
+		}
+	}
+}
+
+%s
+`
+const testUpdateDashboardConfigWithReferences = `
+resource "kibana_dashboard" "china_dash" {
+	name = "Chinese dashboard - updated"
+	description = "Chinese dashboard description - updated"
+	references {
+		id = "${kibana_visualization.china_viz.id}"
+		name = "panel_0"
+		type = "visualization"
+	}
+	references {
+		id = "${kibana_search.china.id}"
+		name = "panel_1"
+		type = "search"
+	}
+	panels_json = <<EOF
+[
+  {
+	"gridData": {
+	  "w": 6,
+	  "h": 3,
+	  "x": 0,
+	  "y": 0,
+	  "i": "1"
+	},
+	"version": "7.2.1",
+	"panelIndex": "1",
+	"type": "visualization",
+	"id": "${kibana_visualization.china_viz.id}"
+  },
+  {
+	"gridData": {
+	  "w": 6,
+	  "h": 3,
+	  "x": 6,
+	  "y": 0,
+	  "i": "2"
+	},
+	"version": "7.2.1",
+	"panelIndex": "2",
+	"type": "search",
+	"id": "${kibana_search.china.id}"
+  }
+]
+EOF
+}
+
+
+resource "kibana_visualization" "china_viz" {
+	name 	            = "Chinese visualization updated"
+	description         = "Chinese error visualization  updated"
+	saved_search_id     = "${kibana_search.china.id}"
+	visualization_state = <<EOF
+{
+  "title": "Chinese search",
+  "type": "gauge",
+  "params": {
+	"type": "gauge",
+	"addTooltip": true,
+	"addLegend": true,
+	"gauge": {
+	  "verticalSplit": false,
+	  "extendRange": true,
+	  "percentageMode": false,
+	  "gaugeType": "Arc",
+	  "gaugeStyle": "Full",
+	  "backStyle": "Full",
+	  "orientation": "vertical",
+	  "colorSchema": "Green to Red",
+	  "gaugeColorMode": "Labels",
+	  "colorsRange": [
+		{
+		  "from": 0,
+		  "to": 50
+		},
+		{
+		  "from": 50,
+		  "to": 75
+		},
+		{
+		  "from": 75,
+		  "to": 100
+		}
+	  ],
+	  "invertColors": false,
+	  "labels": {
+		"show": true,
+		"color": "black"
+	  },
+	  "scale": {
+		"show": true,
+		"labels": false,
+		"color": "#333"
+	  },
+	  "type": "meter",
+	  "style": {
+		"bgWidth": 0.9,
+		"width": 0.9,
+		"mask": false,
+		"bgMask": false,
+		"maskBars": 50,
+		"bgFill": "#eee",
+		"bgColor": false,
+		"subText": "",
+		"fontSize": 60,
+		"labelColor": true
+	  }
+	}
+  },
+  "aggs": [
+	{
+	  "id": "1",
+	  "enabled": true,
+	  "type": "count",
+	  "schema": "metric",
+	  "params": {}
+	}
   ]
 }
 EOF
