@@ -7,6 +7,7 @@ import (
 	"github.com/ewilde/go-kibana"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	goversion "github.com/mcuadros/go-version"
 
 	"strings"
 )
@@ -79,6 +80,9 @@ func TestAccKibanaSearchApi(t *testing.T) {
 }
 
 func TestAccKibanaSearchApi_WithReferences(t *testing.T) {
+	if goversion.Compare(testConfig.KibanaVersion, "7.0.0", "<") {
+		t.SkipNow()
+	}
 	resource.Test(t, resource.TestCase{
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckKibanaSearchDestroy,
