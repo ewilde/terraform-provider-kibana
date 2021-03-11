@@ -357,6 +357,9 @@ resource "kibana_search" "china" {
 
 			meta {
 				index_ref_name = "kibanaSavedObjectMeta.searchSourceJSON.filter[0].meta.index"
+				type = "range"
+				key = "code"
+				value = "500 to 600"
 			}
 		}
 	}
@@ -392,6 +395,9 @@ resource "kibana_search" "china" {
 
 			meta {
 				index_ref_name = "kibanaSavedObjectMeta.searchSourceJSON.filter[0].meta.index"
+				type = "range"
+				key = "code"
+				value = "500 to 600"
 			}
 		}
 
