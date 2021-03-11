@@ -83,7 +83,7 @@ github.com/emirpasic/gods/lists/arraylist
 github.com/emirpasic/gods/trees
 github.com/emirpasic/gods/trees/binaryheap
 github.com/emirpasic/gods/utils
-# github.com/ewilde/go-kibana v0.0.0-20210311102117-ccec64de3b88
+# github.com/ewilde/go-kibana v0.0.0-20210311164053-721589746879
 github.com/ewilde/go-kibana
 # github.com/fatih/color v1.7.0
 github.com/fatih/color

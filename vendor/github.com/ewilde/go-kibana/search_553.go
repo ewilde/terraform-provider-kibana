@@ -16,6 +16,7 @@ type searchClient553 struct {
 
 type searchSourceBuilder553 struct {
 	indexId      string
+	indexRefName string
 	highlightAll bool
 	query        *SearchQuery553
 	filters      []*SearchFilter
@@ -142,6 +143,11 @@ func (builder *searchSourceBuilder553) WithIndexId(indexId string) SearchSourceB
 	return builder
 }
 
+func (builder *searchSourceBuilder553) WithIndexRefName(indexRefName string) SearchSourceBuilder {
+	builder.indexRefName = indexRefName
+	return builder
+}
+
 func (builder *searchSourceBuilder553) WithQuery(query string) SearchSourceBuilder {
 	builder.query = &SearchQuery553{
 		QueryString: &searchQueryString{
@@ -164,6 +170,7 @@ func (builder *searchSourceBuilder553) Build() (*SearchSource, error) {
 
 	return &SearchSource{
 		IndexId:      builder.indexId,
+		IndexRefName: builder.indexRefName,
 		HighlightAll: builder.highlightAll,
 		Version:      true,
 		Query:        builder.query,

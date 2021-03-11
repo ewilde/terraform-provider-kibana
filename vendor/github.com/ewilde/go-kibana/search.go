@@ -119,6 +119,7 @@ type SearchKibanaSavedObjectMeta struct {
 
 type SearchSource struct {
 	IndexId      string          `json:"index"`
+	IndexRefName string          `json:"indexRefName"`
 	HighlightAll bool            `json:"highlightAll"`
 	Version      bool            `json:"version"`
 	Query        interface{}     `json:"query,omitempty"`
@@ -154,14 +155,15 @@ type SearchFilterExists struct {
 }
 
 type SearchFilterMetaData struct {
-	Index    string                       `json:"index"`
-	Negate   bool                         `json:"negate"`
-	Disabled bool                         `json:"disabled"`
-	Alias    string                       `json:"alias"`
-	Type     string                       `json:"type"`
-	Key      string                       `json:"key"`
-	Value    string                       `json:"value"`
-	Params   *SearchFilterQueryAttributes `json:"params"`
+	Index        string                       `json:"index"`
+	IndexRefName string                       `json:"indexRefName"`
+	Negate       bool                         `json:"negate"`
+	Disabled     bool                         `json:"disabled"`
+	Alias        string                       `json:"alias"`
+	Type         string                       `json:"type"`
+	Key          string                       `json:"key"`
+	Value        string                       `json:"value"`
+	Params       *SearchFilterQueryAttributes `json:"params"`
 }
 
 type SearchFilterQueryAttributes struct {
@@ -180,6 +182,7 @@ type SearchRequestBuilder struct {
 
 type SearchSourceBuilder interface {
 	WithIndexId(indexId string) SearchSourceBuilder
+	WithIndexRefName(indexRefName string) SearchSourceBuilder
 	WithQuery(query string) SearchSourceBuilder
 	WithFilter(filter *SearchFilter) SearchSourceBuilder
 	Build() (*SearchSource, error)

@@ -61,33 +61,60 @@ func readMapFromResource(d *schema.ResourceData, key string) map[string]interfac
 	return nil
 }
 
-func readDashboardReferencesFromResource(d *schema.ResourceData) []*kibana.DashboardReferences {
-	return readDashboardReferencesFromInterface(d.Get("references"))
+func readSearchReferencesFromResource(d *schema.ResourceData) []*kibana.SearchReferences {
+	return readSearchReferencesFromInterface(d.Get("references"))
 }
 
-func readDashboardReferencesFromInterface(val interface{}) []*kibana.DashboardReferences {
-	var visRefs []*kibana.DashboardReferences
+func readSearchReferencesFromInterface(val interface{}) []*kibana.SearchReferences {
+	var searchRefs []*kibana.SearchReferences
 	references := val.(*schema.Set).List()
 
 	for _, reference := range references {
 		ref := reference.(map[string]interface{})
 
-		visRef := &kibana.DashboardReferences{
+		searchRef := &kibana.SearchReferences{
+			Id:   ref["id"].(string),
+			Name: ref["name"].(string),
+		}
+
+		switch ref["type"].(string) {
+		case kibana.SearchReferencesTypeIndexPattern.String():
+			searchRef.Type = kibana.SearchReferencesTypeIndexPattern
+		}
+
+		searchRefs = append(searchRefs, searchRef)
+	}
+
+	return searchRefs
+}
+
+func readDashboardReferencesFromResource(d *schema.ResourceData) []*kibana.DashboardReferences {
+	return readDashboardReferencesFromInterface(d.Get("references"))
+}
+
+func readDashboardReferencesFromInterface(val interface{}) []*kibana.DashboardReferences {
+	var dashboardRefs []*kibana.DashboardReferences
+	references := val.(*schema.Set).List()
+
+	for _, reference := range references {
+		ref := reference.(map[string]interface{})
+
+		dashboardRef := &kibana.DashboardReferences{
 			Id:   ref["id"].(string),
 			Name: ref["name"].(string),
 		}
 
 		switch ref["type"].(string) {
 		case kibana.DashboardReferencesTypeSearch.String():
-			visRef.Type = kibana.DashboardReferencesTypeSearch
+			dashboardRef.Type = kibana.DashboardReferencesTypeSearch
 		case kibana.DashboardReferencesTypeVisualization.String():
-			visRef.Type = kibana.DashboardReferencesTypeVisualization
+			dashboardRef.Type = kibana.DashboardReferencesTypeVisualization
 		}
 
-		visRefs = append(visRefs, visRef)
+		dashboardRefs = append(dashboardRefs, dashboardRef)
 	}
 
-	return visRefs
+	return dashboardRefs
 }
 
 func readVisualizationReferencesFromResource(d *schema.ResourceData) []*kibana.VisualizationReferences {

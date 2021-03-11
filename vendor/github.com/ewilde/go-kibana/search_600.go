@@ -14,6 +14,7 @@ type searchClient600 struct {
 
 type searchSourceBuilder600 struct {
 	indexId      string
+	indexRefName string
 	highlightAll bool
 	query        *SearchQuery600
 	filters      []*SearchFilter
@@ -147,6 +148,11 @@ func (builder *searchSourceBuilder600) WithIndexId(indexId string) SearchSourceB
 	return builder
 }
 
+func (builder *searchSourceBuilder600) WithIndexRefName(indexRefName string) SearchSourceBuilder {
+	builder.indexRefName = indexRefName
+	return builder
+}
+
 func (builder *searchSourceBuilder600) WithQuery(query string) SearchSourceBuilder {
 	builder.query = &SearchQuery600{Query: query, Language: "lucene"}
 	return builder
@@ -164,6 +170,7 @@ func (builder *searchSourceBuilder600) Build() (*SearchSource, error) {
 
 	return &SearchSource{
 		IndexId:      builder.indexId,
+		IndexRefName: builder.indexRefName,
 		HighlightAll: builder.highlightAll,
 		Version:      true,
 		Query:        builder.query,

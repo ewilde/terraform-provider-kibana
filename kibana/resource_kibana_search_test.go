@@ -2,10 +2,11 @@ package kibana
 
 import (
 	"fmt"
+	"testing"
+
 	"github.com/ewilde/go-kibana"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"testing"
 
 	"strings"
 )
@@ -31,6 +32,16 @@ var testSearchCreateQuery = map[kibana.KibanaType]string{
 var testSearchUpdate = map[kibana.KibanaType]string{
 	kibana.KibanaTypeVanilla: fmt.Sprintf(testUpdateSearchConfig, kibanaIndexVanilla, dataKibanaIndex),
 	kibana.KibanaTypeLogzio:  fmt.Sprintf(testUpdateSearchConfig, kibanaIndexLogzio, ""),
+}
+
+var testSearchCreateWithReferences = map[kibana.KibanaType]string{
+	kibana.KibanaTypeVanilla: fmt.Sprintf(testCreateSearchConfigWithReferences, dataKibanaIndex),
+	kibana.KibanaTypeLogzio:  fmt.Sprintf(testCreateSearchConfigWithReferences, ""),
+}
+
+var testSearchUpdateWithReferences = map[kibana.KibanaType]string{
+	kibana.KibanaTypeVanilla: fmt.Sprintf(testUpdateSearchConfigWithReferences, dataKibanaIndex),
+	kibana.KibanaTypeLogzio:  fmt.Sprintf(testUpdateSearchConfigWithReferences, ""),
 }
 
 func TestAccKibanaSearchApi(t *testing.T) {
@@ -61,6 +72,54 @@ func TestAccKibanaSearchApi(t *testing.T) {
 					CheckResourceAttrSet("kibana_search.china", "search.#.filters.1.match.#.field_name", "@tags"),
 					CheckResourceAttrSet("kibana_search.china", "search.#.filters.1.match.#.query", "error"),
 					CheckResourceAttrSet("kibana_search.china", "search.#.filters.1.match.#.type", "phrase"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccKibanaSearchApi_WithReferences(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckKibanaSearchDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testSearchCreateWithReferences[testConfig.KibanaType],
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckKibanaSearchExists("kibana_search.china"),
+					resource.TestCheckResourceAttr("kibana_search.china", "name", "Chinese search"),
+					resource.TestCheckResourceAttr("kibana_search.china", "description", "Chinese search results"),
+					resource.TestCheckResourceAttr("kibana_search.china", "display_columns.0", "_source"),
+					resource.TestCheckResourceAttr("kibana_search.china", "sort_by_columns.0", "@timestamp"),
+					resource.TestCheckResourceAttr("kibana_search.china", "sort_ascending", "false"),
+					CheckResourceAttrSet("kibana_search.china", "search.#.filters.0.match.#.field_name", "geo.src"),
+					CheckResourceAttrSet("kibana_search.china", "search.#.filters.0.match.#.query", "CN"),
+					CheckResourceAttrSet("kibana_search.china", "search.#.filters.0.match.#.type", "phrase"),
+					CheckResourceAttrSet("kibana_search.china", "references.#", "2"),
+					CheckResourceAttrSet("kibana_search.china", "references.0.id", "logzioCustomerIndex*"),
+					CheckResourceAttrSet("kibana_search.china", "references.0.name", "kibanaSavedObjectMeta.searchSourceJSON.index"),
+					CheckResourceAttrSet("kibana_search.china", "references.0.type", kibana.SearchReferencesTypeIndexPattern.String()),
+					CheckResourceAttrSet("kibana_search.china", "references.1.id", "logzioCustomerIndex*"),
+					CheckResourceAttrSet("kibana_search.china", "references.1.name", "kibanaSavedObjectMeta.searchSourceJSON.filter[0].meta.index"),
+					CheckResourceAttrSet("kibana_search.china", "references.1.type", kibana.SearchReferencesTypeIndexPattern.String()),
+				),
+			},
+			{
+				Config: testSearchUpdateWithReferences[testConfig.KibanaType],
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckKibanaSearchExists("kibana_search.china"),
+					resource.TestCheckResourceAttr("kibana_search.china", "name", "Chinese search - errors"),
+					resource.TestCheckResourceAttr("kibana_search.china", "description", "Chinese errors"),
+					CheckResourceAttrSet("kibana_search.china", "search.#.filters.1.match.#.field_name", "@tags"),
+					CheckResourceAttrSet("kibana_search.china", "search.#.filters.1.match.#.query", "error"),
+					CheckResourceAttrSet("kibana_search.china", "search.#.filters.1.match.#.type", "phrase"),
+					CheckResourceAttrSet("kibana_search.china", "references.#", "2"),
+					CheckResourceAttrSet("kibana_search.china", "references.0.id", "logzioCustomerIndex*"),
+					CheckResourceAttrSet("kibana_search.china", "references.0.name", "kibanaSavedObjectMeta.searchSourceJSON.index"),
+					CheckResourceAttrSet("kibana_search.china", "references.0.type", kibana.SearchReferencesTypeIndexPattern.String()),
+					CheckResourceAttrSet("kibana_search.china", "references.1.id", "logzioCustomerIndex*"),
+					CheckResourceAttrSet("kibana_search.china", "references.1.name", "kibanaSavedObjectMeta.searchSourceJSON.filter[0].meta.index"),
+					CheckResourceAttrSet("kibana_search.china", "references.1.type", kibana.SearchReferencesTypeIndexPattern.String()),
 				),
 			},
 		},
@@ -251,6 +310,84 @@ resource "kibana_search" "china" {
 				field_name = "geo.src"
 				query      = "CN"
 				type       = "phrase"
+			}
+		}
+
+		filters {
+			match {
+				field_name = "@tags"
+				query      = "error"
+				type       = "phrase"
+			}
+		}
+	}
+}
+
+%s
+`
+
+const testCreateSearchConfigWithReferences = `
+resource "kibana_search" "china" {
+	name 	        = "Chinese search"
+	description     = "Chinese search results"
+	display_columns = ["_source"]
+	sort_by_columns = ["@timestamp"]
+	references {
+		id = "logzioCustomerIndex*"
+		name = "kibanaSavedObjectMeta.searchSourceJSON.index"
+		type = "index-pattern"
+	}
+	references {
+		id = "logzioCustomerIndex*"
+		name = "kibanaSavedObjectMeta.searchSourceJSON.filter[0].meta.index"
+		type = "index-pattern"
+	}
+	search {
+		index_ref_name   = "kibanaSavedObjectMeta.searchSourceJSON.index"
+		filters {
+			match {
+				field_name = "geo.src"
+				query      = "CN"
+				type       = "phrase"
+			}
+
+			meta {
+				index_ref_name = "kibanaSavedObjectMeta.searchSourceJSON.filter[0].meta.index"
+			}
+		}
+	}
+}
+
+%s
+`
+
+const testUpdateSearchConfigWithReferences = `
+resource "kibana_search" "china" {
+	name 	        = "Chinese search - errors"
+	description     = "Chinese errors"
+	display_columns = ["_source"]
+	sort_by_columns = ["@timestamp"]
+	references {
+		id = "logzioCustomerIndex*"
+		name = "kibanaSavedObjectMeta.searchSourceJSON.index"
+		type = "index-pattern"
+	}
+	references {
+		id = "logzioCustomerIndex*"
+		name = "kibanaSavedObjectMeta.searchSourceJSON.filter[0].meta.index"
+		type = "index-pattern"
+	}
+	search {
+		index_ref_name   = "kibanaSavedObjectMeta.searchSourceJSON.index"
+		filters {
+			match {
+				field_name = "geo.src"
+				query      = "CN"
+				type       = "phrase"
+			}
+
+			meta {
+				index_ref_name = "kibanaSavedObjectMeta.searchSourceJSON.filter[0].meta.index"
 			}
 		}
 
