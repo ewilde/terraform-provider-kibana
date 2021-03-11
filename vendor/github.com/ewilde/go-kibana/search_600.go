@@ -2,7 +2,6 @@ package kibana
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 )
 
@@ -164,10 +163,6 @@ func (builder *searchSourceBuilder600) WithFilter(filter *SearchFilter) SearchSo
 }
 
 func (builder *searchSourceBuilder600) Build() (*SearchSource, error) {
-	if builder.indexId == "" {
-		return nil, errors.New("Index id is required to create a discover search source")
-	}
-
 	return &SearchSource{
 		IndexId:      builder.indexId,
 		IndexRefName: builder.indexRefName,

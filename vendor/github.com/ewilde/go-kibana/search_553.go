@@ -164,10 +164,6 @@ func (builder *searchSourceBuilder553) WithFilter(filter *SearchFilter) SearchSo
 }
 
 func (builder *searchSourceBuilder553) Build() (*SearchSource, error) {
-	if builder.indexId == "" {
-		return nil, errors.New("Index id is required to create a discover search source")
-	}
-
 	return &SearchSource{
 		IndexId:      builder.indexId,
 		IndexRefName: builder.indexRefName,
