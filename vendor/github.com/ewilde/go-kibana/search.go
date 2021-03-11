@@ -9,6 +9,17 @@ const (
 	Descending
 )
 
+// Enums for searchReferencesType
+const (
+	SearchReferencesTypeIndexPattern searchReferencesType = "index-pattern"
+)
+
+type searchReferencesType string
+
+func (r searchReferencesType) String() string {
+	return string(r)
+}
+
 type SortOrder int
 
 type SearchSourceBuilderFactory interface {
@@ -26,18 +37,27 @@ type SearchClient interface {
 }
 
 type CreateSearchRequest struct {
-	Attributes *SearchAttributes `json:"attributes"`
+	Attributes *SearchAttributes   `json:"attributes"`
+	References []*SearchReferences `json:"references,omitempty"`
 }
 
 type UpdateSearchRequest struct {
-	Attributes *SearchAttributes `json:"attributes"`
+	Attributes *SearchAttributes   `json:"attributes"`
+	References []*SearchReferences `json:"references,omitempty"`
 }
 
 type Search struct {
-	Id         string            `json:"id"`
-	Type       string            `json:"type"`
-	Version    version           `json:"version"`
-	Attributes *SearchAttributes `json:"attributes"`
+	Id         string              `json:"id"`
+	Type       string              `json:"type"`
+	Version    version             `json:"version"`
+	Attributes *SearchAttributes   `json:"attributes"`
+	References []*SearchReferences `json:"references,omitempty"`
+}
+
+type SearchReferences struct {
+	Name string               `json:"name"`
+	Type searchReferencesType `json:"type"`
+	Id   string               `json:"id"`
 }
 
 type SearchAttributes struct {
@@ -155,6 +175,7 @@ type SearchRequestBuilder struct {
 	displayColumns []string
 	sortColumns    []string
 	searchSource   *SearchSource
+	references     []*SearchReferences
 }
 
 type SearchSourceBuilder interface {
@@ -200,6 +221,11 @@ func (builder *SearchRequestBuilder) WithSearchSource(searchSource *SearchSource
 	return builder
 }
 
+func (builder *SearchRequestBuilder) WithReferences(refs []*SearchReferences) *SearchRequestBuilder {
+	builder.references = refs
+	return builder
+}
+
 func (builder *SearchRequestBuilder) Build() (*CreateSearchRequest, error) {
 	searchSourceBytes, err := json.Marshal(builder.searchSource)
 	if err != nil {
@@ -218,6 +244,7 @@ func (builder *SearchRequestBuilder) Build() (*CreateSearchRequest, error) {
 				SearchSourceJSON: string(searchSourceBytes),
 			},
 		},
+		References: builder.references,
 	}
 	return request, nil
 }
