@@ -55,7 +55,11 @@ func resourceKibanaSearch() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"index": {
 							Type:     schema.TypeString,
-							Required: true,
+							Optional: true,
+						},
+						"index_ref_name": {
+							Type:     schema.TypeString,
+							Optional: true,
 						},
 						"query": {
 							Type:     schema.TypeString,
@@ -96,7 +100,11 @@ func resourceKibanaSearch() *schema.Resource {
 											Schema: map[string]*schema.Schema{
 												"index": {
 													Type:     schema.TypeString,
-													Required: true,
+													Optional: true,
+												},
+												"index_ref_name": {
+													Type:     schema.TypeString,
+													Optional: true,
 												},
 												"negate": {
 													Type:     schema.TypeBool,
@@ -146,6 +154,27 @@ func resourceKibanaSearch() *schema.Resource {
 								},
 							},
 							Optional: true,
+						},
+					},
+				},
+			},
+			"references": {
+				Type:        schema.TypeSet,
+				Description: "A list of references",
+				Optional:    true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"id": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"name": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"type": {
+							Type:     schema.TypeString,
+							Required: true,
 						},
 					},
 				},
@@ -217,14 +246,17 @@ func resourceKibanaSearchRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	search := []interface{}{map[string]interface{}{
-		"index":   responseSearch.IndexId,
-		"query":   extractQueryAsString(responseSearch.Query),
-		"filters": filters,
+		"index":          responseSearch.IndexId,
+		"index_ref_name": responseSearch.IndexRefName,
+		"query":          extractQueryAsString(responseSearch.Query),
+		"filters":        filters,
 	}}
 
 	if err := d.Set("search", search); err != nil {
 		return err
 	}
+
+	d.Set("references", flattenSearchReferences(response.References))
 
 	return nil
 }
@@ -237,7 +269,7 @@ func resourceKibanaSearchUpdate(d *schema.ResourceData, meta interface{}) error 
 
 	log.Printf("[INFO] Creating Kibana search %s", searchRequest.Attributes.Title)
 
-	_, err = searchClient.Update(d.Id(), &kibana.UpdateSearchRequest{Attributes: searchRequest.Attributes})
+	_, err = searchClient.Update(d.Id(), &kibana.UpdateSearchRequest{Attributes: searchRequest.Attributes, References: searchRequest.References})
 
 	if err != nil {
 		return fmt.Errorf("failed to update kibana saved search: %v error: %v", searchRequest, err)
@@ -273,7 +305,12 @@ func createKibanaSearchCreateRequestFromResourceData(d *schema.ResourceData, sea
 		searchSet := v.(*schema.Set).List()
 		if len(searchSet) == 1 {
 			searchMap := searchSet[0].(map[string]interface{})
-			searchBuilder.WithIndexId(searchMap["index"].(string))
+			if v, ok := searchMap["index"]; ok {
+				searchBuilder.WithIndexId(v.(string))
+			}
+			if v, ok := searchMap["index_ref_name"]; ok {
+				searchBuilder.WithIndexRefName(v.(string))
+			}
 			stringApplyIfExists(searchMap["query"], func(value string) {
 				searchBuilder.WithQuery(value)
 			})
@@ -322,6 +359,13 @@ func createKibanaSearchCreateRequestFromResourceData(d *schema.ResourceData, sea
 							Value:    metaMap["value"].(string),
 							Params:   params,
 						}
+
+						if v, ok := metaMap["index"]; ok {
+							meta.Index = v.(string)
+						}
+						if v, ok := metaMap["index_ref_name"]; ok {
+							meta.IndexRefName = v.(string)
+						}
 					}
 				}
 
@@ -345,13 +389,19 @@ func createKibanaSearchCreateRequestFromResourceData(d *schema.ResourceData, sea
 		return nil, err
 	}
 
-	return kibana.NewSearchRequestBuilder().
+	request := kibana.NewSearchRequestBuilder().
 		WithTitle(readStringFromResource(d, "name")).
 		WithDescription(readStringFromResource(d, "description")).
 		WithDisplayColumns(readArrayFromResource(d, "display_columns")).
 		WithSortColumns(readArrayFromResource(d, "sort_by_columns"), sortOrder).
-		WithSearchSource(searchSource).
-		Build()
+		WithSearchSource(searchSource)
+
+	references := readSearchReferencesFromResource(d)
+	if len(references) > 0 {
+		request.WithReferences(references)
+	}
+
+	return request.Build()
 }
 
 func flattenMatches(searchFilterQuery *kibana.SearchFilterQuery) *schema.Set {
@@ -376,6 +426,7 @@ func flattenMeta(searchFilterMetaData *kibana.SearchFilterMetaData) *schema.Set 
 	}
 
 	m["index"] = searchFilterMetaData.Index
+	m["index_ref_name"] = searchFilterMetaData.IndexRefName
 	m["negate"] = searchFilterMetaData.Negate
 	m["disabled"] = searchFilterMetaData.Disabled
 	m["alias"] = searchFilterMetaData.Alias
@@ -433,6 +484,12 @@ func matchParamsHash(v interface{}) int {
 func metaHash(v interface{}) int {
 	var buf bytes.Buffer
 	m := v.(map[string]interface{})
+	if v, ok := m["index"]; ok {
+		buf.WriteString(fmt.Sprintf("%s-", v.(string)))
+	}
+	if v, ok := m["index_ref_name"]; ok {
+		buf.WriteString(fmt.Sprintf("%s-", v.(string)))
+	}
 	buf.WriteString(fmt.Sprintf("%s-", m["index"].(string)))
 	buf.WriteString(fmt.Sprintf("%v", m["negate"].(bool)))
 	buf.WriteString(fmt.Sprintf("%v", m["disabled"].(bool)))
@@ -455,4 +512,26 @@ func extractQueryAsString(query interface{}) string {
 	}
 
 	return ""
+}
+
+func flattenSearchReferences(refs []*kibana.SearchReferences) []interface{} {
+	if refs == nil {
+		return nil
+	}
+
+	out := make([]interface{}, 0)
+
+	for _, ref := range refs {
+		if ref == nil {
+			continue
+		}
+
+		out = append(out, map[string]interface{}{
+			"id":   ref.Id,
+			"name": ref.Name,
+			"type": ref.Type.String(),
+		})
+	}
+
+	return out
 }

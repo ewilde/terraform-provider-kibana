@@ -83,7 +83,7 @@ github.com/emirpasic/gods/lists/arraylist
 github.com/emirpasic/gods/trees
 github.com/emirpasic/gods/trees/binaryheap
 github.com/emirpasic/gods/utils
-# github.com/ewilde/go-kibana v0.0.0-20210308173242-50256c0d763b
+# github.com/ewilde/go-kibana v0.0.0-20210311164053-721589746879 => /home/peter/tools/go-kibana
 github.com/ewilde/go-kibana
 # github.com/fatih/color v1.7.0
 github.com/fatih/color
