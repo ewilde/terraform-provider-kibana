@@ -6,7 +6,7 @@ require (
 	github.com/Microsoft/go-winio v0.4.15 // indirect
 	github.com/cenkalti/backoff v2.2.1+incompatible // indirect
 	github.com/containerd/continuity v0.0.0-20200928162600-f2cc35102c2a // indirect
-	github.com/ewilde/go-kibana v0.0.0-20210311164053-721589746879
+	github.com/ewilde/go-kibana v0.0.0-20210312090537-1c39d951b736
 	github.com/hashicorp/hcl v0.0.0-20171017181929-23c074d0eceb // indirect
 	github.com/hashicorp/terraform-plugin-sdk v1.16.0
 	github.com/mcuadros/go-version v0.0.0-20190830083331-035f6764e8d2
@@ -21,6 +21,4 @@ require (
 
 )
 
-replace (
-	golang.org/x/sys => golang.org/x/sys v0.0.0-20190830141801-acfa387b8d69
-)
+replace golang.org/x/sys => golang.org/x/sys v0.0.0-20190830141801-acfa387b8d69

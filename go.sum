@@ -123,6 +123,8 @@ github.com/ewilde/go-kibana v0.0.0-20210311102117-ccec64de3b88 h1:8TRFcjIXvZPr2h
 github.com/ewilde/go-kibana v0.0.0-20210311102117-ccec64de3b88/go.mod h1:QqYl0aCvJWhxdEEk/fleOzj9syUnx63B7DSaT4MEDrU=
 github.com/ewilde/go-kibana v0.0.0-20210311164053-721589746879 h1:tM47pflLKDh1l1pXBD8UAWdDryKnF22zREQXnGRBFtw=
 github.com/ewilde/go-kibana v0.0.0-20210311164053-721589746879/go.mod h1:QqYl0aCvJWhxdEEk/fleOzj9syUnx63B7DSaT4MEDrU=
+github.com/ewilde/go-kibana v0.0.0-20210312090537-1c39d951b736 h1:GxY1w9631ijxBzWjiPrPsRSTCQv/JNc0a39RTMbx4/M=
+github.com/ewilde/go-kibana v0.0.0-20210312090537-1c39d951b736/go.mod h1:QqYl0aCvJWhxdEEk/fleOzj9syUnx63B7DSaT4MEDrU=
 github.com/fatih/color v1.7.0 h1:DkWD4oS2D8LGGgTQ6IvwJJXSL5Vp2ffcQg58nFV38Ys=
 github.com/fatih/color v1.7.0/go.mod h1:Zm6kSWBoL9eyXnKyktHP6abPY2pDugNf5KwzbycvMj4=
 github.com/flynn/go-shlex v0.0.0-20150515145356-3f9db97f8568/go.mod h1:xEzjJPgXI435gkrCt3MPfRiAkVrwSbHsst4LCFVfpJc=
