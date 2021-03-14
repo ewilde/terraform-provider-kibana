@@ -84,7 +84,7 @@ func resourceKibanaSearch() *schema.Resource {
 												},
 												"query": {
 													Type:     schema.TypeString,
-													Required: true,
+													Optional: true,
 												},
 												"type": {
 													Type:     schema.TypeString,
@@ -130,7 +130,7 @@ func resourceKibanaSearch() *schema.Resource {
 												},
 												"value": {
 													Type:     schema.TypeString,
-													Required: true,
+													Optional: true,
 												},
 												"params": {
 													Type:     schema.TypeSet,
@@ -139,7 +139,7 @@ func resourceKibanaSearch() *schema.Resource {
 														Schema: map[string]*schema.Schema{
 															"query": {
 																Type:     schema.TypeString,
-																Required: true,
+																Optional: true,
 															},
 															"type": {
 																Type:     schema.TypeString,
@@ -447,8 +447,11 @@ func flattenMetaParams(searchFilterMetaData *kibana.SearchFilterQueryAttributes)
 	}
 
 	m := map[string]interface{}{}
-	m["type"] = searchFilterMetaData.Type
 	m["query"] = searchFilterMetaData.Query
+	m["type"] = searchFilterMetaData.Type
+	if m["type"] == "" {
+		m["type"] = "phrase"
+	}
 
 	s.Add(m)
 
