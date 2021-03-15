@@ -122,7 +122,7 @@ func resourceKibanaSearch() *schema.Resource {
 												},
 												"type": {
 													Type:     schema.TypeString,
-													Required: true,
+													Optional: true,
 												},
 												"key": {
 													Type:     schema.TypeString,
@@ -143,7 +143,7 @@ func resourceKibanaSearch() *schema.Resource {
 															},
 															"type": {
 																Type:     schema.TypeString,
-																Required: true,
+																Optional: true,
 															},
 														},
 													},
