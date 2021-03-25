@@ -1,13 +1,13 @@
 ---
 language: go
 go:
-- 1.9
+- 1.16
 services:
 - docker
 env:
   matrix:
   - ELK_VERSION=5.5.3 KIBANA_TYPE=KibanaTypeVanilla ELASTIC_PACK= MAKELOGS_VERSION=makelogs@4.0.3
-  - ELK_VERSION=7.2.1 KIBANA_TYPE=KibanaTypeLogzio KIBANA_URI=https://app-eu.logz.io ELASTIC_SEARCH_PATH=/kibana/elasticsearch/logzioCustomerKibanaIndex LOGZ_IO_ACCOUNT_ID_1=16533 LOGZ_IO_ACCOUNT_ID_2=14942
+  - ELK_VERSION=7.6.1 KIBANA_TYPE=KibanaTypeLogzio KIBANA_URI=https://app-eu.logz.io/kibana-7-6 ELASTIC_SEARCH_PATH=/kibana/elasticsearch/logzioCustomerKibanaIndex LOGZ_URL=https://app-eu.logz.io LOGZ_IO_ACCOUNT_ID_1=16533 LOGZ_IO_ACCOUNT_ID_2=14942
   - ELK_VERSION=6.2.1 KIBANA_TYPE=KibanaTypeVanilla MAKELOGS_VERSION=makelogs@4.0.3
   - ELK_VERSION=6.4.1 KIBANA_TYPE=KibanaTypeVanilla MAKELOGS_VERSION=makelogs@4.0.3
   - ELK_VERSION=7.3.1 KIBANA_TYPE=KibanaTypeVanilla MAKELOGS_VERSION=@elastic/makelogs@4.5.0

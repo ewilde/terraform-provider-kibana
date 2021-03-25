@@ -138,9 +138,10 @@ env ELK_VERSION=6.2.1 KIBANA_TYPE=KibanaTypeVanilla make
 |:----------------|:----------------------------------------|
 | ELK_VERSION| Version of ELK to run while test against logzio |
 | KIBANA_TYPE| Always  KibanaTypeLogzio|
-| KIBANA_URI| Your logz.io base uri i.e. https://app-eu.logz.io |
+| KIBANA_URI| Your logz.io base uri i.e. https://app-eu.logz.io/kibana-7-6 |
 | ELASTIC_SEARCH_PATH| Always /kibana/elasticsearch/logzioCustomerKibanaIndex for logz.io|
 | LOGZ_CLIENT_ID| Obtained for the POST data call to https://logzio.auth0.com/oauth/ro. Use chrome developer tools when you login to logz.io to obtain this. |
+| LOGZ_URL| *Optional* The base URL to Logz.io, i.e https://app-eu.logz.io. Defaults to KIBANA_URI or https://app-eu.logz.io (in that order)|
 |LOGZ_MFA_SECRET| _Optional_ One time password secret, if account requires MFA. |
 | KIBANA_USERNAME| Your logz.io username|
 | KIBANA_PASSWORD| Your logz.io password|
