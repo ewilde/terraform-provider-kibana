@@ -104,7 +104,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - ELK_VERSION: 7.2.1
+          - ELK_VERSION: 7.6.1
             KIBANA_TYPE: KibanaTypeLogzio
             MAKELOGS_VERSION: '@elastic/makelogs@4.5.0'
     steps:
@@ -126,11 +126,12 @@ jobs:
       env:
         ELK_VERSION: ${{ matrix.ELK_VERSION }}
         KIBANA_TYPE: ${{ matrix.KIBANA_TYPE }}
-        KIBANA_URI: 'https://app-eu.logz.io'
+        KIBANA_URI: 'https://app-eu.logz.io/kibana-7-6'
         ELASTIC_SEARCH_PATH: '/kibana/elasticsearch/logzioCustomerKibanaIndex'
         MAKELOGS_VERSION: ${{ matrix.MAKELOGS_VERSION }}
         KIBANA_USERNAME: ${{ secrets.KIBANA_USERNAME }}
         KIBANA_PASSWORD: ${{ secrets.KIBANA_PASSWORD }}
+        LOGZ_URL: 'https://app-eu.logz.io'
         LOGZ_CLIENT_ID: ${{ secrets.LOGZ_CLIENT_ID }}
         LOGZ_MFA_SECRET: ${{ secrets.LOGZ_MFA_SECRET }}
 
