@@ -114,6 +114,10 @@ func createLogzAuthenticationHandler() *LogzAuthenticationHandler {
 	agent := gorequest.New()
 	agent.Debug = os.Getenv(EnvKibanaDebug) != ""
 	uri := os.Getenv(EnvKibanaUri)
+	if v := os.Getenv(EnvLogzURL); v != "" {
+		uri = v
+	}
+
 	if uri == "" {
 		uri = "https://app-eu.logz.io"
 	}

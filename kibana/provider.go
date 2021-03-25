@@ -2,10 +2,11 @@ package kibana
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"log"
 	"os"
 	"sync"
+
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 
 	"github.com/ewilde/go-kibana"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -181,9 +182,14 @@ func getAuthHandler(config *kibana.Config, d *schema.ResourceData) kibana.Authen
 }
 
 func getLogzioAuthHandler(config *kibana.Config, d *schema.ResourceData) kibana.AuthenticationHandler {
+	url := config.KibanaBaseUri
+	if v := os.Getenv(kibana.EnvLogzURL); v != "" {
+		url = v
+	}
+
 	return &kibana.LogzAuthenticationHandler{
 		Auth0Uri:  "https://logzio.auth0.com",
-		LogzUri:   config.KibanaBaseUri,
+		LogzUri:   url,
 		ClientId:  d.Get("logzio_client_id").(string),
 		UserName:  d.Get("kibana_username").(string),
 		Password:  d.Get("kibana_password").(string),
