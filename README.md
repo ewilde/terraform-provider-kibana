@@ -97,29 +97,31 @@ this value is not considered sensitive and we have observed it is always `kydHH8
  
 ![image](https://user-images.githubusercontent.com/329397/68251418-fbb03400-001a-11ea-9214-ca0e0429040c.png)
 
-## Building The Provider
-
-Clone repository to: `$GOPATH/src/github.com/ewilde/terraform-provider-kibana`
-
-```sh
-$ mkdir -p $GOPATH/src/github.com/ewilde; cd $GOPATH/src/github.com/ewilde
-$ git clone git@github.com:ewilde/terraform-provider-kibana
-```
-
-Enter the provider directory and build the provider
-
-```sh
-$ cd $GOPATH/src/github.com/ewilde/terraform-provider-kibana
-$ ELK_VERSION=6.2.3 KIBANA_TYPE=KibanaTypeVanilla make build
-```
-
 ## Using the provider
+
+### Installation
+
+The provider is available on the [Terraform Registry](https://registry.terraform.io/providers/ewilde/kibana/latest).
+
+Require it within your project:
+
+```
+terraform {
+  required_providers {
+    kibana = {
+      source = "ewilde/kibana"
+    }
+  }
+}
+
+provider "kibana" {
+}
+```
+
+You can then use all the provided resources datasources
 
 ### Example creating saved search, visualization and dashboard resources
 ```hcl
-provider "kibana" {
-}
-
 data "kibana_index" "main" {
   filter {
     name = "title"
