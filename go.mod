@@ -1,4 +1,4 @@
-module github.com/ewilde/terraform-provider-kibana
+module github.com/monitobeko/terraform-provider-kibana
 
 go 1.13
 
