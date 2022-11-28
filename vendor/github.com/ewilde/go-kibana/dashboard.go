@@ -12,6 +12,9 @@ import (
 const (
 	DashboardReferencesTypeSearch        dashboardReferencesType = "search"
 	DashboardReferencesTypeVisualization dashboardReferencesType = "visualization"
+	DashboardReferencesTypeIndexPattern  dashboardReferencesType = "index-pattern"
+	DashboardReferencesTypeTag           dashboardReferencesType = "tag"
+	DashboardReferencesTypeLens          dashboardReferencesType = "lens"
 )
 
 type dashboardReferencesType string
